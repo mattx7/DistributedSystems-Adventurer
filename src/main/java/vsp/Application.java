@@ -2,12 +2,12 @@ package vsp;
 
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import vsp.api_client.APIClient;
-import vsp.api_client.entities.Token;
-import vsp.api_client.entities.User;
-import vsp.api_client.http.HTTPConnectionException;
-import vsp.api_client.http.HTTPResponse;
-import vsp.api_client.utility.BlackBoard;
+import vsp.adventurer_api.APIClient;
+import vsp.adventurer_api.entities.Token;
+import vsp.adventurer_api.entities.User;
+import vsp.adventurer_api.http.HTTPConnectionException;
+import vsp.adventurer_api.http.HTTPResponse;
+import vsp.adventurer_api.utility.BlackBoard;
 
 import java.io.Console;
 import java.io.IOException;

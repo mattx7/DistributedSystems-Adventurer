@@ -1,4 +1,4 @@
-package vsp.api_client.http.web_resource;
+package vsp.adventurer_api.http.web_resource;
 
 import org.jetbrains.annotations.NotNull;
 

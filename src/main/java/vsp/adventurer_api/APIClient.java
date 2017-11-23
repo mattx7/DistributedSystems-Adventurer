@@ -1,4 +1,4 @@
-package vsp.api_client;
+package vsp.adventurer_api;
 
 
 import com.google.common.base.Preconditions;
@@ -6,16 +6,16 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import vsp.Application;
 import vsp.TokenNotFoundException;
-import vsp.api_client.entities.Token;
-import vsp.api_client.entities.User;
-import vsp.api_client.http.HTTPRequest;
-import vsp.api_client.http.HTTPResponse;
-import vsp.api_client.http.HTTPVerb;
-import vsp.api_client.http.auth.HTTPBasicAuth;
-import vsp.api_client.http.auth.HTTPTokenAuth;
-import vsp.api_client.http.web_resource.DebugResource;
-import vsp.api_client.http.web_resource.MainResource;
-import vsp.api_client.http.web_resource.SubResource;
+import vsp.adventurer_api.entities.Token;
+import vsp.adventurer_api.entities.User;
+import vsp.adventurer_api.http.HTTPRequest;
+import vsp.adventurer_api.http.HTTPResponse;
+import vsp.adventurer_api.http.HTTPVerb;
+import vsp.adventurer_api.http.auth.HTTPBasicAuth;
+import vsp.adventurer_api.http.auth.HTTPTokenAuth;
+import vsp.adventurer_api.http.web_resource.DebugResource;
+import vsp.adventurer_api.http.web_resource.MainResource;
+import vsp.adventurer_api.http.web_resource.SubResource;
 
 import java.io.IOException;
 import java.util.HashMap;

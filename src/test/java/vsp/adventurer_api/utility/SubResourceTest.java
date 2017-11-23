@@ -1,8 +1,8 @@
-package vsp.api_client.utility;
+package vsp.adventurer_api.utility;
 
 import org.testng.annotations.Test;
-import vsp.api_client.http.web_resource.MainResource;
-import vsp.api_client.http.web_resource.SubResource;
+import vsp.adventurer_api.http.web_resource.MainResource;
+import vsp.adventurer_api.http.web_resource.SubResource;
 
 import static org.testng.AssertJUnit.assertEquals;
 

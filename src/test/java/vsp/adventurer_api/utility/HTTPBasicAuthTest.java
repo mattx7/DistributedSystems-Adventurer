@@ -1,8 +1,8 @@
-package vsp.api_client.utility;
+package vsp.adventurer_api.utility;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import vsp.api_client.http.auth.HTTPBasicAuth;
+import vsp.adventurer_api.http.auth.HTTPBasicAuth;
 
 public class HTTPBasicAuthTest {
 

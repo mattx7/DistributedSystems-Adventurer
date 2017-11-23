@@ -1,12 +1,12 @@
-package vsp.api_client.http;
+package vsp.adventurer_api.http;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import vsp.api_client.http.auth.HTTPAuthentication;
-import vsp.api_client.http.web_resource.WebResource;
+import vsp.adventurer_api.http.auth.HTTPAuthentication;
+import vsp.adventurer_api.http.web_resource.WebResource;
 
 import java.io.*;
 import java.net.HttpURLConnection;

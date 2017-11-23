@@ -1,8 +1,8 @@
-package vsp.api_client.http;
+package vsp.adventurer_api.http;
 
 import com.google.gson.Gson;
 import org.testng.annotations.Test;
-import vsp.api_client.entities.User;
+import vsp.adventurer_api.entities.User;
 
 import static org.testng.AssertJUnit.assertEquals;
 

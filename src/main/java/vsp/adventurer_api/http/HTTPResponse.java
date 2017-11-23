@@ -1,4 +1,4 @@
-package vsp.api_client.http;
+package vsp.adventurer_api.http;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
