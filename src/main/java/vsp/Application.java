@@ -8,6 +8,8 @@ import vsp.adventurer_api.entities.Token;
 import vsp.adventurer_api.entities.User;
 import vsp.adventurer_api.http.HTTPConnectionException;
 import vsp.adventurer_api.http.HTTPResponse;
+import vsp.adventurer_api.http.web_resource.MainResource;
+import vsp.adventurer_api.http.web_resource.SubResource;
 import vsp.adventurer_api.utility.BlackBoard;
 
 import java.io.Console;
@@ -20,6 +22,7 @@ public class Application {
     private static final int BLACKBOARD_PORT = 24000;
     private static Logger LOG = Logger.getLogger(Application.class);
     private static Console terminal;
+    private static APIClient client;
 
     /**
      * Holds only the main method an instance is not necessary.
@@ -38,14 +41,19 @@ public class Application {
             User user = insertUser();
             LOG.debug("New user " + user.getName() + ":" + user.getPassword());
             handleRegisterIfNecessary(client, user);
+            // TODO create adventurer in the taverna
+            addAdventurerToTaverna(user);
         } catch (final IOException e) {
             LOG.error(e);
         }
 
-        // TODO create adventurer in the taverna
 
         // Start rest-api
         FacadeController.Singleton.run();
+    }
+
+    private static void addAdventurerToTaverna(@NotNull final User user) throws IOException {
+        print(client.get(user, SubResource.from(MainResource.ADVENTURERS, "bastard").getPath()).getJson());
     }
 
     @NotNull

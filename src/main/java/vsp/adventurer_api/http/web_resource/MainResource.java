@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
  * Offers all possible resources from the rest api.
  */
 public enum MainResource implements WebResource {
-    USERS("/users"), LOGIN("/login"), WHOAMI("/whoami"), QUESTS("/blackboard/quests"), MAP("/map");
+    ADVENTURERS("/taverna/adventurers");
 
     @NotNull
     private String path;
