@@ -12,7 +12,6 @@ public class Token {
     @Nullable
     private final Date date; // TODO test if this is set after json conversion
 
-
     public Token(@NotNull final String token,
                  @Nullable final Date date) {
         this.token = token;
