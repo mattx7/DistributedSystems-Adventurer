@@ -25,7 +25,6 @@ import java.util.Map;
  * Offers operations from the given API.
  */
 public class APIClient {
-
     private static Logger LOG = Logger.getLogger(Application.class);
 
     @NotNull
@@ -59,9 +58,7 @@ public class APIClient {
     }
 
     // ======= for debug/testing ======
-
-    public HTTPResponse get(@NotNull final User user,
-                            @NotNull final String path) throws IOException {
+    public HTTPResponse get(@NotNull final User user, @NotNull final String path) throws IOException {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
@@ -71,8 +68,7 @@ public class APIClient {
                 .send();
     }
 
-    public HTTPResponse post(@NotNull final User user,
-                             @NotNull final String path,
+    public HTTPResponse post(@NotNull final User user, @NotNull final String path,
                              @NotNull final String body) throws IOException {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
@@ -98,7 +94,6 @@ public class APIClient {
     }
 
     //  =====================================
-
     /**
      * Registers a user to the blackboard.
      *

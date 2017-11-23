@@ -90,13 +90,6 @@ public class Application {
                         case QUESTS:
                             print("Quests...");
                             print(client.quests(user).getJson());
-                            /*  client
-                                    .quests()
-                                    .getAs(QuestWrapper.class) // TODO make null safe
-                                    .getObjects()
-                                    .stream()
-                                    .map(e -> e.getId() + ": " + e.getName())
-                                    .forEach(Application::print);*/
                             break;
                         case HOST:
                             client.setDefaultURL();

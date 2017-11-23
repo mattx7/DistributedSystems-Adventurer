@@ -6,7 +6,7 @@ apply plugin: 'application'
 
 
 jar {
-    baseName = 'vsp_abw286'
+    baseName = 'vsp_abw578'
     manifest {
         attributes 'Main-Class': 'vsp.Application'
     }

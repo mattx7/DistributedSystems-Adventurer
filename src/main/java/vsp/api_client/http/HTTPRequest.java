@@ -18,7 +18,6 @@ import java.util.Map;
  * Representation of an request for a REST-API.
  */
 public class HTTPRequest {
-
     private static final Logger LOG = Logger.getLogger(HTTPRequest.class);
 
     /**

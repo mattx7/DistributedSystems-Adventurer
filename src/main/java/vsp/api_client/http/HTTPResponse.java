@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
  * Representation of a HTTP-response.
  */
 public class HTTPResponse {
-
     @NotNull
     private final String json;
 
@@ -37,5 +36,4 @@ public class HTTPResponse {
 
         return jsonConverter.fromJson(json, type);
     }
-
 }

@@ -7,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
  * Representation of a user from the rest api.
  */
 public class User {
-
     @NotNull
     private String name;
 

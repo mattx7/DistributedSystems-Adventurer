@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Date;
 
 public class Token {
-
     @NotNull
     private final String token;
 
