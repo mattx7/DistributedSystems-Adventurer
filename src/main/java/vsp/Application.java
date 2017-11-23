@@ -19,7 +19,11 @@ public class Application {
 
     public static void main(String[] args) throws IOException {
         LOG.debug("Starting application...");
+        // TODO register or login
 
+        // TODO create adventurer in the taverna
+
+        // Start rest-api
         FacadeController.Singleton.run();
     }
 }
