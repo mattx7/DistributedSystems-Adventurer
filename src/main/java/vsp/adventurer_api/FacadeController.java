@@ -8,5 +8,4 @@ public enum FacadeController {
     public void run() {
         get("/hello", (req, res) -> "Hello World");
     }
-
 }

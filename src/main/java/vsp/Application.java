@@ -8,7 +8,6 @@ import java.io.IOException;
  * Runs application and interactions.
  */
 public class Application {
-
     /**
      * Holds only the main method an instance is not necessary.
      */
@@ -20,5 +19,4 @@ public class Application {
 
         FacadeController.Singleton.run();
     }
-
 }
