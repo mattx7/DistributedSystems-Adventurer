@@ -38,6 +38,7 @@ public class Application {
         try {
             client = new APIClient(blackBoard.getHostAddress(), blackBoard.getPort());
             // interactions
+            terminal = System.console();
             User user = insertUser();
             LOG.debug("New user " + user.getName() + ":" + user.getPassword());
             handleRegisterIfNecessary(client, user);
@@ -46,7 +47,6 @@ public class Application {
         } catch (final IOException e) {
             LOG.error(e);
         }
-
 
         // Start rest-api
         FacadeController.Singleton.run();
@@ -59,7 +59,6 @@ public class Application {
     @NotNull
     private static User insertUser() {
         print("Please login or register with a username and password!");
-        terminal = System.console();
         String username = terminal.readLine("Username: ");
         String password = terminal.readLine("password: ");
         return new User(username, password);
