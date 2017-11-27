@@ -36,7 +36,7 @@ public class Application {
         BlackBoard blackBoard = new BlackBoard(BLACKBOARD_PORT);
 
         try {
-            APIClient client = new APIClient(blackBoard.getHostAddress(), blackBoard.getPort());
+            client = new APIClient(blackBoard.getHostAddress(), blackBoard.getPort());
             // interactions
             User user = insertUser();
             LOG.debug("New user " + user.getName() + ":" + user.getPassword());
