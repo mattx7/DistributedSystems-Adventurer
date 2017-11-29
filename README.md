@@ -21,3 +21,43 @@
 * Run the project with:  `java -jar vsp_adventurer.jar`
 * Register with new User or Log in with existing one
 * type !help to see available commands
+
+## Testing the REST-api
+
+Look into the already existing data to get some examples:
+
+```
+curl -X POST abw286:1234@172.19.0.7:5000/taverna/adventurers
+```
+One example:
+```json
+...,
+{
+      "capabilities": "bully", 
+      "heroclass": "metal", 
+      "url": "172.19.0.36", 
+      "user": "/users/Ritter"
+},
+...
+```
+
+Create new adventurer with:
+```
+curl -H "Content-Type: application/json" -X POST abw286:1234@172.19.0.7:5000/taverna/adventurers -d '{ "heroclass": "bastard", "capabilities": "", "url": "172.19.0.14/users/Bastard" }'
+```
+answer:
+```
+{
+  "message": "Created Adventurer", 
+  "object": [
+    {
+      "capabilities": "", 
+      "heroclass": "bastard", 
+      "url": "172.19.0.14/users/Bastard", 
+      "user": "/users/abw286"
+    }
+  ], 
+  "status": "success"
+}
+```
+
