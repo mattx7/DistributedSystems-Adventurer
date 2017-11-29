@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import vsp.adventurer_api.APIClient;
 import vsp.adventurer_api.FacadeController;
+import vsp.adventurer_api.entities.CreateAdventurer;
 import vsp.adventurer_api.entities.Token;
 import vsp.adventurer_api.entities.User;
 import vsp.adventurer_api.http.HTTPConnectionException;
@@ -11,6 +12,7 @@ import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.web_resource.MainResource;
 import vsp.adventurer_api.http.web_resource.SubResource;
 import vsp.adventurer_api.utility.BlackBoard;
+import vsp.adventurer_api.utility.JsonTransformer;
 
 import java.io.Console;
 import java.io.IOException;
@@ -41,9 +43,13 @@ public class Application {
             terminal = System.console();
             User user = insertUser();
             LOG.debug("New user " + user.getName() + ":" + user.getPassword());
+
+            // login or register
             handleRegisterIfNecessary(client, user);
-            // TODO create adventurer in the taverna
+            // add link/json to taverna/adventurers
             addAdventurerToTaverna(user);
+
+
         } catch (final IOException e) {
             LOG.error(e);
         }
@@ -53,7 +59,10 @@ public class Application {
     }
 
     private static void addAdventurerToTaverna(@NotNull final User user) throws IOException {
-        print(client.get(user, SubResource.from(MainResource.ADVENTURERS, "bastard").getPath()).getJson());
+        print(client.post(
+                user,
+                SubResource.from(MainResource.ADVENTURERS, "bastard").getPath(),
+                new JsonTransformer().render(new CreateAdventurer("bastard", "", "172.19.0.14/users/bastard"))).getJson());
     }
 
     @NotNull
