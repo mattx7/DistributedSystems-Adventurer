@@ -61,3 +61,7 @@ answer:
 }
 ```
 
+## Connecting to our REST-api
+```
+curl -X GET <IP-from-container>:4567/
+```
