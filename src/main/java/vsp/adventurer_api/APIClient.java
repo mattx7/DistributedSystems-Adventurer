@@ -11,10 +11,10 @@ import vsp.adventurer_api.entities.User;
 import vsp.adventurer_api.http.HTTPRequest;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.HTTPVerb;
+import vsp.adventurer_api.http.api.DebugResourceHolder;
+import vsp.adventurer_api.http.api.MainResourceHolder;
 import vsp.adventurer_api.http.auth.HTTPBasicAuth;
 import vsp.adventurer_api.http.auth.HTTPTokenAuth;
-import vsp.adventurer_api.http.web_resource.DebugResource;
-import vsp.adventurer_api.http.web_resource.MainResource;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -53,7 +53,7 @@ public class APIClient {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugResource(path))
+                .resource(new DebugResourceHolder(path))
                 .type(HTTPVerb.GET)
                 .auth(HTTPTokenAuth.forUser(user))
                 .send();
@@ -65,7 +65,7 @@ public class APIClient {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugResource(path))
+                .resource(new DebugResourceHolder(path))
                 .type(HTTPVerb.POST)
                 .auth(HTTPTokenAuth.forUser(user))
                 .body(body)
@@ -78,7 +78,7 @@ public class APIClient {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugResource(path))
+                .resource(new DebugResourceHolder(path))
                 .type(HTTPVerb.PUT)
                 .auth(HTTPTokenAuth.forUser(user))
                 .body(body)
@@ -98,7 +98,7 @@ public class APIClient {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(MainResource.USERS)
+                .resource(MainResourceHolder.USERS)
                 .type(HTTPVerb.POST)
                 .body(user)
                 .send();
@@ -115,7 +115,7 @@ public class APIClient {
         LOG.debug("Login with user '" + user.getName() + "'...");
         return HTTPRequest
                 .to(targetURL)
-                .resource(MainResource.LOGIN)
+                .resource(MainResourceHolder.LOGIN)
                 .type(HTTPVerb.GET)
                 .auth(HTTPBasicAuth.forUser(user))
                 .send();

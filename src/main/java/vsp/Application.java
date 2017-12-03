@@ -9,8 +9,7 @@ import vsp.adventurer_api.entities.Token;
 import vsp.adventurer_api.entities.User;
 import vsp.adventurer_api.http.HTTPConnectionException;
 import vsp.adventurer_api.http.HTTPResponse;
-import vsp.adventurer_api.http.web_resource.MainResource;
-import vsp.adventurer_api.http.web_resource.SubResource;
+import vsp.adventurer_api.http.api.MainResourceHolder;
 import vsp.adventurer_api.utility.BlackBoard;
 import vsp.adventurer_api.utility.JsonTransformer;
 
@@ -35,33 +34,37 @@ public class Application {
     public static void main(String[] args) throws IOException {
         LOG.debug("Starting application...");
 
-        BlackBoard blackBoard = new BlackBoard(BLACKBOARD_PORT);
-
         try {
+            BlackBoard blackBoard = new BlackBoard(BLACKBOARD_PORT);
             client = new APIClient(blackBoard.getHostAddress(), blackBoard.getPort());
             // interactions
             terminal = System.console();
             User user = insertUser();
+
             LOG.debug("New user " + user.getName() + ":" + user.getPassword());
 
             // login or register
             handleRegisterIfNecessary(client, user);
+
             // add link/json to taverna/adventurers
             addAdventurerToTaverna(user);
 
+
+            // Start rest-api
+
+            FacadeController.Singleton.run(user);
 
         } catch (final IOException e) {
             LOG.error(e);
         }
 
-        // Start rest-api
-        FacadeController.Singleton.run();
+
     }
 
     private static void addAdventurerToTaverna(@NotNull final User user) throws IOException {
         print(client.post(
                 user,
-                SubResource.from(MainResource.ADVENTURERS, "bastard").getPath(),
+                MainResourceHolder.ADVENTURERS.getPath(),
                 new JsonTransformer().render(new CreateAdventurer("bastard", "", "172.19.0.14/users/bastard"))).getJson());
     }
 

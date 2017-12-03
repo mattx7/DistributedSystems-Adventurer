@@ -1,11 +1,11 @@
-package vsp.adventurer_api.http.web_resource;
+package vsp.adventurer_api.http.api;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Representation of a RESTful resource.
  */
-public interface WebResource {
+public interface ResourceHolder {
 
     /**
      * Return url path to the web resource.

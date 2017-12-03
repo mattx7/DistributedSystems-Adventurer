@@ -1,24 +1,24 @@
-package vsp.adventurer_api.http.web_resource;
+package vsp.adventurer_api.http.api;
 
 import org.jetbrains.annotations.NotNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class SubResource implements WebResource {
+public class SubPath implements ResourceHolder {
 
     @NotNull
     private final String path;
 
-    private SubResource(@NotNull MainResource mainResource,
-                        @NotNull CharSequence... subPath) {
+    private SubPath(@NotNull MainResourceHolder mainResource,
+                    @NotNull CharSequence... subPath) {
         this.path = mainResource.getPath()
                 .concat("/")
                 .concat(String.join("/", subPath));
     }
 
-    public static SubResource from(@NotNull MainResource mainResource,
-                                   @NotNull CharSequence... subPath) {
-        return new SubResource(
+    public static SubPath from(@NotNull MainResourceHolder mainResource,
+                               @NotNull CharSequence... subPath) {
+        return new SubPath(
                 checkNotNull(mainResource),
                 checkNotNull(subPath)
         );

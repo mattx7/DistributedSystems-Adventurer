@@ -5,8 +5,8 @@ import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import vsp.adventurer_api.http.api.ResourceHolder;
 import vsp.adventurer_api.http.auth.HTTPAuthentication;
-import vsp.adventurer_api.http.web_resource.WebResource;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -46,7 +46,7 @@ public class HTTPRequest {
      * Resource from the rest api. <b>HAS TO BE SET BEFORE {@link #send()}</b>
      */
     @Nullable
-    private WebResource webResource;
+    private ResourceHolder webResource;
 
     /**
      * Message body. Can be set with {@link #body(Object)}.
@@ -86,7 +86,7 @@ public class HTTPRequest {
      * @param resource Not null.
      * @return This instance for inline use.
      */
-    public HTTPRequest resource(@NotNull final WebResource resource) {
+    public HTTPRequest resource(@NotNull final ResourceHolder resource) {
         Preconditions.checkNotNull(resource, "webResource should not be null.");
 
         this.webResource = resource;
@@ -151,7 +151,7 @@ public class HTTPRequest {
     }
 
     /**
-     * Starts the get request to the given resource. <b>{@link #resource(WebResource)} and {@link #type(HTTPVerb)} has to be set before this method</b>
+     * Starts the get request to the given resource. <b>{@link #resource(ResourceHolder)} and {@link #type(HTTPVerb)} has to be set before this method</b>
      *
      * @return This instance for inline use.
      * @throws IOException If connection fails.
@@ -179,7 +179,7 @@ public class HTTPRequest {
 
 
     /**
-     * Starts the connection. <b>{@link #resource(WebResource)} and {@link #type(HTTPVerb)} has to be set before this method</b>
+     * Starts the connection. <b>{@link #resource(ResourceHolder)} and {@link #type(HTTPVerb)} has to be set before this method</b>
      *
      * @param url address to connect to.
      * @return Not null.

@@ -3,9 +3,6 @@ package vsp.adventurer_api.entities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Representation of a user from the rest api.
  */
@@ -19,12 +16,6 @@ public class User {
 
     @Nullable
     private Token token;
-
-    private String heroclass;
-
-    private List<String> capabilities = new ArrayList<>();
-
-    private String url;
 
     public User(@NotNull String name, @NotNull String password) {
         this.name = name;

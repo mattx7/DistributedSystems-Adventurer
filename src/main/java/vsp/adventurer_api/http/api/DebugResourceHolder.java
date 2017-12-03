@@ -1,13 +1,13 @@
-package vsp.adventurer_api.http.web_resource;
+package vsp.adventurer_api.http.api;
 
 import org.jetbrains.annotations.NotNull;
 
-public class DebugResource implements WebResource {
+public class DebugResourceHolder implements ResourceHolder {
 
     @NotNull
     private final String path;
 
-    public DebugResource(@NotNull final String path) {
+    public DebugResourceHolder(@NotNull final String path) {
         this.path = path;
     }
 
