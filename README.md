@@ -80,3 +80,21 @@ answer:
 ```
 curl -X GET <IP-from-container>:4567/
 ```
+### Group
+To see list of groups get:
+```
+  http://172.19.0.7:5000/taverna/groups
+```
+
+answer:
+```
+{
+      "_links": {
+        "members": "/taverna/groups/311/members", 
+        "self": "/taverna/groups/311"
+      }, 
+      "id": 311, 
+      "members": [], 
+      "owner": "Thomas"
+    }, 
+```
