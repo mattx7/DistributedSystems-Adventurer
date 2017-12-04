@@ -1,9 +1,9 @@
 package vsp.adventurer_api.entities.cache;
 
 import vsp.adventurer_api.entities.Assignment;
-import vsp.adventurer_api.entities.Group;
 import vsp.adventurer_api.entities.Hiring;
 import vsp.adventurer_api.entities.Message;
+import vsp.adventurer_api.entities.group.Group;
 import vsp.adventurer_api.http.api.OurRoutes;
 
 public class Cache {

@@ -33,7 +33,7 @@ public class TaskResult {
     private String user;
 
     /**
-     * <something you want to tell the other one
+     * something you want to tell the other one
      */
     private String message;
 

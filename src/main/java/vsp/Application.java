@@ -147,7 +147,6 @@ public class Application {
 
             try {
                 if (parameter.length == 1) {
-                    // commands with one param
                     switch (parameter[0]) {
                         case QUIT:
                             print("BYE!");
@@ -193,7 +192,6 @@ public class Application {
                             break;
                     }
                 } else if (parameter.length == 2) {
-                    // commands with two params
                     String param1 = parameter[0];
                     String param2 = parameter[1];
 
@@ -221,7 +219,7 @@ public class Application {
                             print(client.quest(user, param2).getJson());
                             break;
                         case SET_TOKEN:
-                            user.setToken(client.getToken(param2)); // TODO BAD design token nicht im user ändern
+                            user.setToken(client.getToken(param2));
                             print("Auth token is now set to " + param2);
                             break;
                         case VISITS:
@@ -246,7 +244,6 @@ public class Application {
                             break;
                     }
                 } else if (parameter.length == 3) {
-                    // commands with three params
                     String param1 = parameter[0];
                     String param2 = parameter[1];
                     String param3 = parameter[2];
@@ -280,7 +277,7 @@ public class Application {
                     switch (param1) {
                         case HIRING:
                             print(client.post(user, OurRoutes.HIRINGS.getPath(),
-                                    jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + param2, param3, param4))).getJson());
+                                    jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + "/" + param2, param3, param4))).getJson());
                             break;
                         default:
                             showHelpMessage();
@@ -288,8 +285,6 @@ public class Application {
                     }
 
                 } else if (parameter.length == 8) {
-                    // commands with three params
-
                     switch (parameter[0]) {
                         case ASSIGNMENT:
                             print(client.post(user, OurRoutes.ASSIGNMENTS.getPath(),
