@@ -24,6 +24,20 @@
 
 ## Testing the REST-api
 
+### Blackboard
+
+Ask for blackbord service with netcat.
+```
+netcat -ulvp 24000
+```
+We receive somthing like:
+```
+listening on [any] 24000 ...
+connect to [172.19.0.14] from blackboard.pdui_container [172.19.0.7] 48172
+{"blackboard_port":5000}
+
+### Adventurer
+
 Look into the already existing data to get some examples:
 
 ```
