@@ -171,4 +171,13 @@ answer:
     "status": "success"
 }
 ```
+Join groups
+```
+peter:pein@172.19.0.7:5000/taverna/groups/315/members
+```
+answer:
+
+```
+
+```
 
