@@ -89,6 +89,11 @@ public class Application {
             // add link/json to taverna/adventurers
             joinTheTaverna(ownIP, user, heroclass);
 
+            /* LOG.debug("###GROUP###: \n" + response.getJson());
+            final GroupWrapper wrapper = converter.fromJson(response.getJson(), GroupWrapper.class); // TODO dies macht auch 0 Sinn
+            LOG.debug("object: " + wrapper.getObject());
+            */
+
             // Start rest-api
             FacadeController.Singleton.run(user, BlackboardRoutes.USERS.getPath() + "/" + user.getName());
 
@@ -214,6 +219,9 @@ public class Application {
                             break;
                         case GET:
                             print(client.get(user, param2).getJson());
+                            break;
+                        case POST:
+                            print(client.post(user, param2, "").getJson());
                             break;
                         case QUEST:
                             print(client.quest(user, param2).getJson());

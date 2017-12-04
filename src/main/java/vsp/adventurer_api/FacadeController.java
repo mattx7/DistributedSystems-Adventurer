@@ -12,7 +12,6 @@ import vsp.adventurer_api.entities.basic.ServiceEndpoint;
 import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.entities.cache.Cache;
 import vsp.adventurer_api.entities.cache.WebResourceEntityCache;
-import vsp.adventurer_api.entities.group.GroupWrapper;
 import vsp.adventurer_api.http.HTTPResponse;
 
 import static spark.Spark.*;
@@ -50,10 +49,7 @@ public enum FacadeController {
                     Application.client.setDefaultURL(); // to blackboard in case of sending hiring to self
                     final HTTPResponse response = Application.client.post(user, hiring.getGroup() + "/members", ""); // TODO path um iwie group z holen oder so
                     Application.client.backToOldTarget();
-
-                    LOG.debug("###GROUP###: \n" + response.getJson());
-                    final GroupWrapper wrapper = converter.fromJson(response.getJson(), GroupWrapper.class); // TODO dies macht auch 0 Sinn
-                    LOG.debug("object: " + wrapper.getObject());
+                    LOG.debug("received json: \n" + response.getJson());
                     resp.status(200);
                     return converter.toJson(new Message("hiring accepted"));
                 } else {
