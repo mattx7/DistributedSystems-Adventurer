@@ -89,12 +89,62 @@ To see list of groups get:
 answer:
 ```
 {
+     {
       "_links": {
-        "members": "/taverna/groups/311/members", 
-        "self": "/taverna/groups/311"
+        "members": "/taverna/groups/314/members", 
+        "self": "/taverna/groups/314"
       }, 
-      "id": 311, 
-      "members": [], 
-      "owner": "Thomas"
+      "id": 314, 
+      "members": [
+        "L", 
+        "K", 
+        "Z", 
+        "Keil1", 
+        "joko"
+      ], 
+      "owner": "K"
+    }
+```
+
+to see members of the group get:
+```
+  http://172.19.0.7:5000/taverna/groups/311/members
+```
+
+```
+ {
+  "objects": [
+    {
+      "capabilities": "", 
+      "heroclass": "L", 
+      "url": "172.19.0.56:4567/services", 
+      "user": "/users/L"
     }, 
+    {
+      "capabilities": "", 
+      "heroclass": "K", 
+      "url": "172.19.0.59:4567/services", 
+      "user": "/users/K"
+    }, 
+    {
+      "capabilities": "", 
+      "heroclass": "Z", 
+      "url": "172.19.0.21:4567/services", 
+      "user": "/users/Z"
+    }, 
+    {
+      "capabilities": "", 
+      "heroclass": "wizzard", 
+      "url": "172.19.0.16:4567/services", 
+      "user": "/users/Keil1"
+    }, 
+    {
+      "capabilities": "", 
+      "heroclass": "mage", 
+      "url": "172.19.0.36:4567/services", 
+      "user": "/users/joko"
+    }
+  ], 
+  "status": "success"
+}
 ```
