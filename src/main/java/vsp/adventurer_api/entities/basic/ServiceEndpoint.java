@@ -1,6 +1,6 @@
 package vsp.adventurer_api.entities.basic;
 
-import vsp.adventurer_api.http.api.OwnResourceHolder;
+import vsp.adventurer_api.http.api.OurRoutes;
 
 public class ServiceEndpoint {
 
@@ -46,10 +46,10 @@ public class ServiceEndpoint {
     public ServiceEndpoint(String user, boolean idle) {
         this.user = user;
         this.idle = idle;
-        this.group = OwnResourceHolder.GROUP.getPath();
-        this.hirings = OwnResourceHolder.HIRINGS.getPath();
-        this.assignments = OwnResourceHolder.ASSIGNMENTS.getPath();
-        this.messages = OwnResourceHolder.MESSAGES.getPath();
+        this.group = OurRoutes.GROUP.getPath();
+        this.hirings = OurRoutes.HIRINGS.getPath();
+        this.assignments = OurRoutes.ASSIGNMENTS.getPath();
+        this.messages = OurRoutes.MESSAGES.getPath();
     }
 
     public String getUser() {

@@ -1,6 +1,6 @@
 package vsp.adventurer_api.entities.cache;
 
-import vsp.adventurer_api.http.api.OwnResourceHolder;
+import vsp.adventurer_api.http.api.OurRoutes;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.List;
 public class WebResourceEntityCache<T> {
 
     @Nonnull
-    private OwnResourceHolder webResource;
+    private OurRoutes webResource;
 
     @Nonnull
     private final List<T> objects = new ArrayList<>();
@@ -22,7 +22,7 @@ public class WebResourceEntityCache<T> {
     private final Class<T> clazz;
 
     public WebResourceEntityCache(@Nonnull final Class<T> clazz,
-                                  @Nonnull final OwnResourceHolder webResource) {
+                                  @Nonnull final OurRoutes webResource) {
         this.clazz = clazz;
         this.webResource = webResource;
     }

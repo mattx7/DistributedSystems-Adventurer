@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Representation of a RESTful resource.
  */
-public interface ResourceHolder {
+public interface Route {
 
     /**
      * Return url path to the web resource.

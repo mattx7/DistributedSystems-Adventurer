@@ -11,8 +11,9 @@ import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.http.HTTPRequest;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.HTTPVerb;
-import vsp.adventurer_api.http.api.DebugResourceHolder;
-import vsp.adventurer_api.http.api.MainResourceHolder;
+import vsp.adventurer_api.http.api.BlackboardRoutes;
+import vsp.adventurer_api.http.api.DebugRoute;
+import vsp.adventurer_api.http.api.SubPath;
 import vsp.adventurer_api.http.auth.HTTPBasicAuth;
 import vsp.adventurer_api.http.auth.HTTPTokenAuth;
 
@@ -30,9 +31,13 @@ public class APIClient {
     @NotNull
     private static final String PROTOCOL = "http";
 
+    private String temp;
+
     @NotNull
     private String targetURL;
 
+    @NotNull
+    private String defaultURL;
 
     @NotNull
     private Map<String, String> tokenMap = new HashMap<>();
@@ -43,7 +48,21 @@ public class APIClient {
         Preconditions.checkNotNull(restApiPort, "restApiPort should not be null.");
 
         this.targetURL = String.format("%s://%s:%d", PROTOCOL, restApiAddress, restApiPort);
+        this.defaultURL = targetURL;
         LOG.debug("URL: " + targetURL);
+    }
+
+    public void setTargetURL(@NotNull String restApiAddress, @NotNull final Integer restApiPort) {
+        this.targetURL = String.format("%s://%s:%d", PROTOCOL, restApiAddress, restApiPort);
+    }
+
+    public void setDefaultURL() {
+        this.temp = this.targetURL;
+        this.targetURL = defaultURL;
+    }
+
+    public void backToOldTarget() {
+        this.targetURL = this.temp;
     }
 
     // ======= for debug/testing ======
@@ -53,7 +72,7 @@ public class APIClient {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugResourceHolder(path))
+                .resource(new DebugRoute(path))
                 .type(HTTPVerb.GET)
                 .auth(HTTPTokenAuth.forUser(user))
                 .send();
@@ -65,7 +84,7 @@ public class APIClient {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugResourceHolder(path))
+                .resource(new DebugRoute(path))
                 .type(HTTPVerb.POST)
                 .auth(HTTPTokenAuth.forUser(user))
                 .body(body)
@@ -78,7 +97,7 @@ public class APIClient {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugResourceHolder(path))
+                .resource(new DebugRoute(path))
                 .type(HTTPVerb.PUT)
                 .auth(HTTPTokenAuth.forUser(user))
                 .body(body)
@@ -98,7 +117,7 @@ public class APIClient {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(MainResourceHolder.USERS)
+                .resource(BlackboardRoutes.USERS)
                 .type(HTTPVerb.POST)
                 .body(user)
                 .send();
@@ -115,9 +134,106 @@ public class APIClient {
         LOG.debug("Login with user '" + user.getName() + "'...");
         return HTTPRequest
                 .to(targetURL)
-                .resource(MainResourceHolder.LOGIN)
+                .resource(BlackboardRoutes.LOGIN)
                 .type(HTTPVerb.GET)
                 .auth(HTTPBasicAuth.forUser(user))
+                .send();
+    }
+
+
+    /**
+     * Checks given user.
+     *
+     * @param user Not null.
+     * @return TODO
+     * @throws IOException If connection fails.
+     */
+    public HTTPResponse whoAmI(@NotNull final User user) throws IOException {
+        LOG.debug("WhoAmI with user " + user.getName());
+        return HTTPRequest
+                .to(targetURL)
+                .resource(BlackboardRoutes.WHOAMI)
+                .type(HTTPVerb.GET)
+                .auth(HTTPTokenAuth.forUser(user))
+                .send();
+    }
+
+    public HTTPResponse quests(@NotNull User user) throws IOException {
+        LOG.debug("View quests");
+        return HTTPRequest
+                .to(targetURL)
+                .resource(BlackboardRoutes.QUESTS)
+                .type(HTTPVerb.GET)
+                .auth(HTTPTokenAuth.forUser(user))
+                .send();
+    }
+
+    public HTTPResponse quest(User user, String questId) throws IOException {
+        LOG.debug("View quest with id: " + questId);
+        return HTTPRequest
+                .to(targetURL)
+                .resource(SubPath.from(
+                        BlackboardRoutes.QUESTS,
+                        String.valueOf(questId)))
+                .type(HTTPVerb.GET)
+                .auth(HTTPTokenAuth.forUser(user))
+                .send();
+    }
+
+    public HTTPResponse questDeliveries(@NotNull final User user,
+                                        @NotNull final Integer questId) throws IOException {
+        LOG.debug("View deliveries");
+        return HTTPRequest
+                .to(targetURL)
+                .resource(SubPath.from(
+                        BlackboardRoutes.QUESTS,
+                        String.valueOf(questId),
+                        "deliveries"))
+                .type(HTTPVerb.GET)
+                .auth(HTTPTokenAuth.forUser(user))
+                .send();
+    }
+
+    public HTTPResponse deliver(@NotNull final User user,
+                                @NotNull final Integer questId,
+                                @NotNull final Integer taskId,
+                                @NotNull final String tokenKey) throws IOException, TokenNotFoundException {
+        LOG.debug("View deliveries");
+        return HTTPRequest
+                .to(targetURL)
+                .resource(SubPath.from(
+                        BlackboardRoutes.QUESTS,
+                        String.valueOf(questId),
+                        "deliveries"))
+                .type(HTTPVerb.POST)
+                .auth(HTTPTokenAuth.forUser(user))
+                .body("{\"tokens\":{\"/blackboard/tasks/" + taskId + "\":\"" + getToken(tokenKey).getToken() + "\"}}")
+                .send();
+    }
+
+    public HTTPResponse questTasks(@NotNull final User user,
+                                   @NotNull final Integer questId) throws IOException {
+        LOG.debug("View task");
+        return HTTPRequest
+                .to(targetURL)
+                .resource(SubPath.from(
+                        BlackboardRoutes.QUESTS,
+                        String.valueOf(questId),
+                        "tasks"))
+                .type(HTTPVerb.GET)
+                .auth(HTTPTokenAuth.forUser(user))
+                .send();
+    }
+    // TODO map
+
+    public HTTPResponse map(@NotNull final User user,
+                            @NotNull final String location) throws IOException {
+        LOG.debug("View quests");
+        return HTTPRequest
+                .to(targetURL)
+                .resource(SubPath.from(BlackboardRoutes.MAP, location))
+                .type(HTTPVerb.GET)
+                .auth(HTTPTokenAuth.forUser(user))
                 .send();
     }
 

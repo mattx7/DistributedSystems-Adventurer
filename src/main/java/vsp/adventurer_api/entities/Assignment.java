@@ -18,6 +18,11 @@ public class Assignment {
     private String task;
 
     /**
+     * uri or url to resource where actions are required
+     */
+    private String resource;
+
+    /**
      * method to take – if already known
      */
     private String method;
@@ -37,10 +42,10 @@ public class Assignment {
      */
     private String message;
 
-
-    public Assignment(String id, String task, String method, String data, String callback, String message) {
+    public Assignment(final String id, final String task, final String resource, final String method, final String data, final String callback, final String message) {
         this.id = id;
         this.task = task;
+        this.resource = resource;
         this.method = method;
         this.data = data;
         this.callback = callback;
@@ -51,7 +56,7 @@ public class Assignment {
         return idCounter;
     }
 
-    public static void setIdCounter(long idCounter) {
+    public static void setIdCounter(final long idCounter) {
         Assignment.idCounter = idCounter;
     }
 
@@ -59,7 +64,7 @@ public class Assignment {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -67,15 +72,23 @@ public class Assignment {
         return task;
     }
 
-    public void setTask(String task) {
+    public void setTask(final String task) {
         this.task = task;
+    }
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(final String resource) {
+        this.resource = resource;
     }
 
     public String getMethod() {
         return method;
     }
 
-    public void setMethod(String method) {
+    public void setMethod(final String method) {
         this.method = method;
     }
 
@@ -83,7 +96,7 @@ public class Assignment {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(final String data) {
         this.data = data;
     }
 
@@ -91,7 +104,7 @@ public class Assignment {
         return callback;
     }
 
-    public void setCallback(String callback) {
+    public void setCallback(final String callback) {
         this.callback = callback;
     }
 
@@ -99,7 +112,7 @@ public class Assignment {
         return message;
     }
 
-    public void setMessage(String message) {
+    public void setMessage(final String message) {
         this.message = message;
     }
 }
