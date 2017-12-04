@@ -10,6 +10,7 @@ import vsp.adventurer_api.entities.CreateAdventurer;
 import vsp.adventurer_api.entities.Hiring;
 import vsp.adventurer_api.entities.basic.Token;
 import vsp.adventurer_api.entities.basic.User;
+import vsp.adventurer_api.entities.group.GroupWrapper;
 import vsp.adventurer_api.http.HTTPConnectionException;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.api.BlackboardRoutes;
@@ -89,10 +90,6 @@ public class Application {
             // add link/json to taverna/adventurers
             joinTheTaverna(ownIP, user, heroclass);
 
-            /* LOG.debug("###GROUP###: \n" + response.getJson());
-            final GroupWrapper wrapper = converter.fromJson(response.getJson(), GroupWrapper.class); // TODO dies macht auch 0 Sinn
-            LOG.debug("object: " + wrapper.getObject());
-            */
 
             // Start rest-api
             FacadeController.Singleton.run(user, BlackboardRoutes.USERS.getPath() + "/" + user.getName());
@@ -164,13 +161,6 @@ public class Application {
                         case QUESTS:
                             print("Quests...");
                             print(client.quests(user).getJson());
-                            /*  client
-                                    .quests()
-                                    .getAs(QuestWrapper.class) // TODO make null safe
-                                    .getObjects()
-                                    .stream()
-                                    .map(e -> e.getId() + ": " + e.getName())
-                                    .forEach(Application::print);*/
                             break;
                         case HOST:
                             client.setDefaultURL();
@@ -190,7 +180,10 @@ public class Application {
                             print(stringBuilder.toString());
                             break;
                         case GROUP:
-                            print(client.post(user, BlackboardRoutes.GROUP.getPath(), "").getJson()); // TODO save group id
+                            String json = client.post(user, BlackboardRoutes.GROUP.getPath(), "").getJson();
+                            print(json); // TODO save group id
+                            final GroupWrapper wrapper = jsonConverter.fromJson(json, GroupWrapper.class); // TODO GroupWrapper ist hier falsch
+                            LOG.debug("object: " + wrapper);
                             break;
                         default:
                             showHelpMessage();
