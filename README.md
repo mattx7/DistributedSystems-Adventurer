@@ -147,4 +147,28 @@ answer:
   ], 
   "status": "success"
 }
+
+POST TO groups
 ```
+peter:pein@172.19.0.7:5000/taverna/groups
+```
+answer:
+
+```
+{
+    "message": "Created Group",
+    "object": [
+        {
+            "_links": {
+                "members": "/taverna/groups/315/members",
+                "self": "/taverna/groups/315"
+            },
+            "id": 315,
+            "members": [],
+            "owner": "peter"
+        }
+    ],
+    "status": "success"
+}
+```
+answer:
