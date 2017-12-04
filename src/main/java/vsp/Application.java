@@ -1,17 +1,17 @@
 package vsp;
 
+import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import vsp.adventurer_api.APIClient;
 import vsp.adventurer_api.FacadeController;
 import vsp.adventurer_api.entities.CreateAdventurer;
-import vsp.adventurer_api.entities.Token;
-import vsp.adventurer_api.entities.User;
+import vsp.adventurer_api.entities.basic.Token;
+import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.http.HTTPConnectionException;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.api.MainResourceHolder;
 import vsp.adventurer_api.utility.BlackBoard;
-import vsp.adventurer_api.utility.JsonTransformer;
 
 import java.io.Console;
 import java.io.IOException;
@@ -24,6 +24,7 @@ public class Application {
     private static Logger LOG = Logger.getLogger(Application.class);
     private static Console terminal;
     private static APIClient client;
+    private static Gson jsonConverter;
 
     /**
      * Holds only the main method an instance is not necessary.
@@ -49,9 +50,9 @@ public class Application {
             // add link/json to taverna/adventurers
             addAdventurerToTaverna(user);
 
+            // At /taverna/groups one might post to create a new group. You have to join the group, even when you are the creator.
 
             // Start rest-api
-
             FacadeController.Singleton.run(user);
 
         } catch (final IOException e) {
@@ -62,10 +63,11 @@ public class Application {
     }
 
     private static void addAdventurerToTaverna(@NotNull final User user) throws IOException {
+        jsonConverter = new Gson();
         print(client.post(
                 user,
                 MainResourceHolder.ADVENTURERS.getPath(),
-                new JsonTransformer().render(new CreateAdventurer("bastard", "", "172.19.0.14/users/bastard"))).getJson());
+                jsonConverter.toJson(new CreateAdventurer("bastard", "", "172.19.0.14/users/bastard"))).getJson());
     }
 
     @NotNull

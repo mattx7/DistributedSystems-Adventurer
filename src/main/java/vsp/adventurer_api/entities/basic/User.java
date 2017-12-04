@@ -1,4 +1,4 @@
-package vsp.adventurer_api.entities;
+package vsp.adventurer_api.entities.basic;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

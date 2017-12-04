@@ -2,7 +2,7 @@ package vsp.adventurer_api.http;
 
 import com.google.gson.Gson;
 import org.testng.annotations.Test;
-import vsp.adventurer_api.entities.User;
+import vsp.adventurer_api.entities.basic.User;
 
 import static org.testng.AssertJUnit.assertEquals;
 

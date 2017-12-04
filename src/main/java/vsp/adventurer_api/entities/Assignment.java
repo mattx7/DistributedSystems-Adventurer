@@ -8,7 +8,7 @@ public class Assignment {
     private static long idCounter = 0;
 
     /**
-     * some identity chosen by the initiator to identify this reques
+     * some identity chosen by the initiator to identify this request
      */
     private String id;
 

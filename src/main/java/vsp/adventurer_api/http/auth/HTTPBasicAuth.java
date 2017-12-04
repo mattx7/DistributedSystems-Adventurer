@@ -2,7 +2,7 @@ package vsp.adventurer_api.http.auth;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
-import vsp.adventurer_api.entities.User;
+import vsp.adventurer_api.entities.basic.User;
 
 import java.util.Base64;
 

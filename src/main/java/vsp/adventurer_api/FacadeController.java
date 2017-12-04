@@ -3,7 +3,13 @@ package vsp.adventurer_api;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
-import vsp.adventurer_api.entities.*;
+import vsp.adventurer_api.entities.Assignment;
+import vsp.adventurer_api.entities.Group;
+import vsp.adventurer_api.entities.Hiring;
+import vsp.adventurer_api.entities.Message;
+import vsp.adventurer_api.entities.basic.ServiceEndpoint;
+import vsp.adventurer_api.entities.basic.User;
+import vsp.adventurer_api.entities.cache.WebResourceEntityCache;
 import vsp.adventurer_api.http.api.OwnResourceHolder;
 
 import static spark.Spark.get;

@@ -1,4 +1,4 @@
-package vsp.adventurer_api.entities;
+package vsp.adventurer_api.entities.cache;
 
 import vsp.adventurer_api.http.api.OwnResourceHolder;
 
