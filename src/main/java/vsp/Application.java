@@ -11,6 +11,7 @@ import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.entities.cache.Cache;
 import vsp.adventurer_api.entities.group.CreatedGroup;
 import vsp.adventurer_api.entities.group.Group;
+import vsp.adventurer_api.entities.group.GroupWrapper;
 import vsp.adventurer_api.http.HTTPConnectionException;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.api.BlackboardRoutes;
@@ -191,19 +192,21 @@ public class Application {
                             String json = client.post(user, BlackboardRoutes.GROUP.getPath(), "").getJson();
                             print(json);
                             final CreatedGroup createdGroup = jsonConverter.fromJson(json, CreatedGroup.class);
-                            final Group group = createdGroup.getObject().get(0); // dangerous !!!
+                            Group group = createdGroup.getObject().get(0); // dangerous !!!
                             LOG.debug("object: " + createdGroup);
                             print(client.post(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId() + "/" + "members", "").getJson());
+                            group = client.get(user, BlackboardRoutes.GROUP + "/" + group.getId()).getAs(GroupWrapper.class).getObject();
                             Cache.GROUPS.add(group);
                             break;
                         case MEMBER:
+                            updateGroupMembers(client, user);
                             for (Group grp : Cache.GROUPS.getObjects()) {
+                                LOG.debug(grp.getOwner() + " equals " + user.getName() + "?");
                                 if (grp.getOwner().equalsIgnoreCase(user.getName())) {
                                     StringBuilder stringBuilder1 = new StringBuilder();
                                     for (final String member : grp.getMembers()) {
                                         stringBuilder1.append(member).append(",");
                                     }
-                                    stringBuilder1.deleteCharAt(stringBuilder1.length() - 1);
                                     print(String.valueOf(grp.getId()) + " -> " + stringBuilder1.toString());
                                 }
                             }
@@ -331,6 +334,12 @@ public class Application {
             } catch (final Exception e) {
                 LOG.error(e);
             }
+        }
+    }
+
+    private static void updateGroupMembers(@NotNull APIClient client, @NotNull User user) throws IOException {
+        for (final Group group1 : Cache.GROUPS.getObjects()) {
+            group1.setMembers(client.get(user, BlackboardRoutes.GROUP + "/" + group1.getId()).getAs(GroupWrapper.class).getObject().getMembers());
         }
     }
 
