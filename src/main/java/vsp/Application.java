@@ -195,13 +195,12 @@ public class Application {
                             Group group = createdGroup.getObject().get(0); // dangerous !!!
                             LOG.debug("object: " + createdGroup);
                             print(client.post(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId() + "/" + "members", "").getJson());
-                            group = client.get(user, BlackboardRoutes.GROUP + "/" + group.getId()).getAs(GroupWrapper.class).getObject();
+                            group = client.get(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId()).getAs(GroupWrapper.class).getObject();
                             Cache.GROUPS.add(group);
                             break;
                         case MEMBER:
                             updateGroupMembers(client, user);
                             for (Group grp : Cache.GROUPS.getObjects()) {
-                                LOG.debug(grp.getOwner() + " equals " + user.getName() + "?");
                                 if (grp.getOwner().equalsIgnoreCase(user.getName())) {
                                     StringBuilder stringBuilder1 = new StringBuilder();
                                     for (final String member : grp.getMembers()) {
@@ -314,7 +313,7 @@ public class Application {
                 } else if (parameter.length == 9) {
                     switch (parameter[0]) {
                         case ASSIGNMENT:
-                            final AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.ADVENTURERS + "/" + parameter[1]).getAs(AdventurerWrapper.class);
+                            final AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.ADVENTURERS.getPath() + "/" + parameter[1]).getAs(AdventurerWrapper.class);
                             final Adventurer adventurer = adventurerWrapper.getObject();
                             client.setTargetURL(adventurer.getUrl(), JAVASPARK_PORT);
                             print(client.post(user, OurRoutes.ASSIGNMENTS.getPath(),
@@ -339,7 +338,7 @@ public class Application {
 
     private static void updateGroupMembers(@NotNull APIClient client, @NotNull User user) throws IOException {
         for (final Group group1 : Cache.GROUPS.getObjects()) {
-            group1.setMembers(client.get(user, BlackboardRoutes.GROUP + "/" + group1.getId()).getAs(GroupWrapper.class).getObject().getMembers());
+            group1.setMembers(client.get(user, BlackboardRoutes.GROUP.getPath() + "/" + group1.getId()).getAs(GroupWrapper.class).getObject().getMembers());
         }
     }
 
