@@ -94,7 +94,7 @@ public class Application {
             joinTheTaverna(ownIP, user, heroclass);
 
             // Start rest-api
-            FacadeController.Singleton.run(user, BlackboardRoutes.USERS.getPath() + "/" + user.getName());
+            FacadeController.SINGLETON.run(user, BlackboardRoutes.USERS.getPath() + "/" + user.getName());
             sleep();
             showHelpMessage();
             awaitAndHandleCommand(client, user);
@@ -399,6 +399,6 @@ public class Application {
     public static void handleNewAssignment(Assignment assignment) {
         Cache.ASSIGNMENTS.add(assignment);
         print("New Assignment: " + assignment);
-        FacadeController.Singleton.updateAssignments();
+        FacadeController.SINGLETON.updateAssignments();
     }
 }

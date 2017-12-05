@@ -17,7 +17,7 @@ import vsp.adventurer_api.http.HTTPResponse;
 import static spark.Spark.*;
 
 public enum FacadeController {
-    Singleton;
+    SINGLETON;
 
     private static final Logger LOG = Logger.getLogger(FacadeController.class);
 
