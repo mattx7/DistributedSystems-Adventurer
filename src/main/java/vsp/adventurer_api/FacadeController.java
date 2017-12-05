@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import org.apache.log4j.Logger;
 import vsp.Application;
 import vsp.adventurer_api.entities.Assignment;
+import vsp.adventurer_api.entities.Election;
 import vsp.adventurer_api.entities.Hiring;
 import vsp.adventurer_api.entities.Message;
 import vsp.adventurer_api.entities.basic.ServiceEndpoint;
@@ -51,6 +52,7 @@ public enum FacadeController {
                     LOG.debug("received json: \n" + response.getJson());
                     resp.status(200);
                     return converter.toJson(new Message("hiring accepted"));
+                    // TODO some more HTTP codes
                 } else {
                     return halt(406, converter.toJson(new Message("hiring rejected")));
                 }
@@ -74,6 +76,11 @@ public enum FacadeController {
 
         });
 
+        post(Cache.ELECTIONS.route(), (req, resp) -> {
+            final Election election = converter.fromJson(req.body(), Election.class);
+            LOG.debug(election);
+            return resp;
+        });
     }
 
     public void updateAssignments() {

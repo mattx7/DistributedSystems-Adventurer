@@ -3,7 +3,7 @@ package vsp.adventurer_api.http.api;
 import org.jetbrains.annotations.NotNull;
 
 public enum OurRoutes implements Route {
-    HIRINGS("/hirings"), GROUP("/group"), ASSIGNMENTS("/assignments"), MESSAGES("/messages");
+    HIRINGS("/hirings"), GROUP("/group"), ASSIGNMENTS("/assignments"), MESSAGES("/messages"), ELECTION("/election");
 
     private String path;
 
