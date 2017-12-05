@@ -55,7 +55,7 @@ public class Application {
     private static final String VISITS = "!visits";
     private static final String HIRING = "!hiring";
     private static final String GROUP = "!group";
-    private static final String ASSIGNMENT = "!assignment";
+    private static final String ASSIGN = "!assign";
 
     private static boolean holdAwaitCommandAlive;
     private static Console terminal;
@@ -312,7 +312,7 @@ public class Application {
 
                 } else if (parameter.length == 9) {
                     switch (parameter[0]) {
-                        case ASSIGNMENT:
+                        case ASSIGN:
                             final AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.ADVENTURERS.getPath() + "/" + parameter[1]).getAs(AdventurerWrapper.class);
                             final Adventurer adventurer = adventurerWrapper.getObject();
                             client.setTargetURL(adventurer.getUrl(), JAVASPARK_PORT);
@@ -363,7 +363,7 @@ public class Application {
                 HIRING + " <groupID> <quest> <message> \n" +
                 GROUP + " - creates a new group and saves it \n" +
                 MEMBER + " - list members of the group\n" +
-                ASSIGNMENT + "<username> <ID> <taskURI> <resourceURI> <method> <data> <callbackURI> <message>\n" +
+                ASSIGN + "<username> <ID> <taskURI> <resourceURI> <method> <data> <callbackURI> <message>\n" +
                 "Debug commands: \n" +
                 GET + " <path> - GET on given path \n" +
                 POST + " <path> <body> - POST with given path and body \n" +
@@ -394,5 +394,11 @@ public class Application {
                 print("wrong answer! Only !yes or '!no' are 'allowed'");
             }
         }
+    }
+
+    public static void handleNewAssignment(Assignment assignment) {
+        Cache.ASSIGNMENTS.add(assignment);
+        print("New Assignment: " + assignment);
+        FacadeController.Singleton.updateAssignments();
     }
 }

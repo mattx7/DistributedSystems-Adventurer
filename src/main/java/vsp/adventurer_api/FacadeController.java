@@ -44,10 +44,9 @@ public enum FacadeController {
                 hiring = converter.fromJson(req.body(), Hiring.class);
                 final boolean isAccepted = Application.acceptToNewHiring(req.body());
                 if (isAccepted) {
-//                    Cache.HIRINGS.add(hiring);
-
+//                    Cache.HIRINGS.add(hiring); TODO /hirings usefull?
                     Application.client.setDefaultURL(); // to blackboard in case of sending hiring to self
-                    final HTTPResponse response = Application.client.post(user, hiring.getGroup() + "/members", ""); // TODO path um iwie group z holen oder so
+                    final HTTPResponse response = Application.client.post(user, hiring.getGroup() + "/members", "");
                     Application.client.backToOldTarget();
                     LOG.debug("received json: \n" + response.getJson());
                     resp.status(200);
@@ -66,7 +65,7 @@ public enum FacadeController {
             final Assignment assignment;
             try {
                 assignment = converter.fromJson(req.body(), Assignment.class);
-                Cache.ASSIGNMENTS.add(assignment);
+                Application.handleNewAssignment(assignment);
                 resp.status(200);
                 return resp;
             } catch (JsonSyntaxException e) {
@@ -75,5 +74,9 @@ public enum FacadeController {
 
         });
 
+    }
+
+    public void updateAssignments() {
+        Cache.ASSIGNMENTS.getObjects().forEach(e -> get("/assignments/" + e.getId(), (req, resp) -> converter.toJson(e)));
     }
 }
