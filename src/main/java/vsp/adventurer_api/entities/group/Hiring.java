@@ -1,4 +1,4 @@
-package vsp.adventurer_api.entities;
+package vsp.adventurer_api.entities.group;
 
 public class Hiring {
 

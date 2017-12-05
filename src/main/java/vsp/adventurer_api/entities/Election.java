@@ -1,5 +1,7 @@
 package vsp.adventurer_api.entities;
 
+import vsp.adventurer_api.entities.assignment.Assignment;
+
 public class Election {
 
     /**

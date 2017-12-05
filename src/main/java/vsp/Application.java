@@ -5,13 +5,18 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import vsp.adventurer_api.APIClient;
 import vsp.adventurer_api.FacadeController;
-import vsp.adventurer_api.entities.*;
+import vsp.adventurer_api.entities.adventurer.Adventurer;
+import vsp.adventurer_api.entities.adventurer.AdventurerWrapper;
+import vsp.adventurer_api.entities.adventurer.CreateAdventurer;
+import vsp.adventurer_api.entities.assignment.Assignment;
+import vsp.adventurer_api.entities.assignment.TaskResult;
 import vsp.adventurer_api.entities.basic.Token;
 import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.entities.cache.Cache;
 import vsp.adventurer_api.entities.group.CreatedGroup;
 import vsp.adventurer_api.entities.group.Group;
 import vsp.adventurer_api.entities.group.GroupWrapper;
+import vsp.adventurer_api.entities.group.Hiring;
 import vsp.adventurer_api.http.HTTPConnectionException;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.api.BlackboardRoutes;
@@ -28,10 +33,14 @@ import java.util.Map;
  */
 public class Application {
     public static final String MEMBER = "!member";
+    public static final String ASSIGNMENTS = "!assignments";
+    public static final String RESULT = "!result";
     private static Logger LOG = Logger.getLogger(Application.class);
 
     private static final int BLACKBOARD_PORT = 24000;
-    private static final int JAVASPARK_PORT = 4567;
+    private static final int OWN_PORT = 4567;
+    private static String OWN_IP;
+    public static final String OWN_URL = OWN_IP + ":" + OWN_PORT + "/";
 
     private static final String AWAIT_COMMAND_MARKER = "#IN>";
     private static Gson jsonConverter = new Gson();
@@ -59,7 +68,6 @@ public class Application {
 
     private static boolean holdAwaitCommandAlive;
     private static Console terminal;
-    private static String ownIP;
 
     /**
      * Holds client for everyone
@@ -78,7 +86,7 @@ public class Application {
         try {
             BlackBoard blackBoard = new BlackBoard(BLACKBOARD_PORT);
             client = new APIClient(blackBoard.getHostAddress(), blackBoard.getPort());
-            ownIP = InetAddress.getLocalHost().getHostAddress();
+            OWN_IP = InetAddress.getLocalHost().getHostAddress();
 
             // interactions
             terminal = System.console();
@@ -91,7 +99,7 @@ public class Application {
             String heroclass = terminal.readLine("Insert your heroclass: ");
 
             // add link/json to taverna/adventurers
-            joinTheTaverna(ownIP, user, heroclass);
+            joinTheTaverna(OWN_IP, user, heroclass);
 
             // Start rest-api
             FacadeController.SINGLETON.run(user, BlackboardRoutes.USERS.getPath() + "/" + user.getName());
@@ -197,17 +205,23 @@ public class Application {
                             print(client.post(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId() + "/" + "members", "").getJson());
                             group = client.get(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId()).getAs(GroupWrapper.class).getObject();
                             Cache.GROUPS.add(group);
+                            // TODO add "group" to capabilities
                             break;
                         case MEMBER:
                             updateGroupMembers(client, user);
                             for (Group grp : Cache.GROUPS.getObjects()) {
-                                if (grp.getOwner().equalsIgnoreCase(user.getName())) {
+                                if (grp.getOwner().equalsIgnoreCase(user.getName())) { // TODO sinnvoll?
                                     StringBuilder stringBuilder1 = new StringBuilder();
                                     for (final String member : grp.getMembers()) {
                                         stringBuilder1.append(member).append(",");
                                     }
                                     print(String.valueOf(grp.getId()) + " -> " + stringBuilder1.toString());
                                 }
+                            }
+                            break;
+                        case ASSIGNMENTS:
+                            for (Assignment assignment : Cache.ASSIGNMENTS.getObjects()) {
+                                print(assignment.toString());
                             }
                             break;
                         default:
@@ -253,12 +267,12 @@ public class Application {
                             break;
                         case HOST:
                             if ("self".equalsIgnoreCase(param2)) {
-                                client.setTargetURL(ownIP, JAVASPARK_PORT);
+                                client.setTargetURL(OWN_IP, OWN_PORT);
                                 print("Host changed to own ip");
                             } else {
                                 try {
                                     final Integer ipEnding = Integer.valueOf(param2);
-                                    client.setTargetURL("172.19.0." + ipEnding, JAVASPARK_PORT);
+                                    client.setTargetURL("172.19.0." + ipEnding, OWN_PORT);
                                     print("Host changed to 172.19.0." + ipEnding);
                                 } catch (NumberFormatException e) {
                                     showHelpMessage();
@@ -310,14 +324,43 @@ public class Application {
                             break;
                     }
 
-                } else if (parameter.length == 9) {
+                } else if (parameter.length == 5) {
+                    switch (parameter[0]) {
+                        case RESULT:
+                            final String id = parameter[1];
+                            Assignment assignment = null;
+                            for (Assignment asnmt : Cache.ASSIGNMENTS.getObjects()) {
+                                if (asnmt.getId().equalsIgnoreCase(id)) {
+                                    assignment = asnmt;
+                                }
+                            }
+
+                            if (assignment != null) {
+                                final String json = jsonConverter.toJson(new TaskResult(assignment.getId(),
+                                        assignment.getTask(),
+                                        assignment.getResource(),
+                                        parameter[2],
+                                        parameter[3],
+                                        BlackboardRoutes.USERS + "/" + user.getName(),
+                                        parameter[4]), TaskResult.class);
+                                LOG.debug("Result: " + json);
+                                client.post(user, assignment.getCallback() + OurRoutes.RESULTS.getPath(), json);
+                            } else {
+                                print(">>> No assignment found with the given ID <<<");
+                            }
+                            break;
+                        default:
+                            showHelpMessage();
+                            break;
+                    }
+                } else if (parameter.length == 8) {
                     switch (parameter[0]) {
                         case ASSIGN:
                             final AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.ADVENTURERS.getPath() + "/" + parameter[1]).getAs(AdventurerWrapper.class);
                             final Adventurer adventurer = adventurerWrapper.getObject();
-                            client.setTargetURL(adventurer.getUrl(), JAVASPARK_PORT);
+                            client.setTargetURL(adventurer.getUrl(), OWN_PORT);
                             print(client.post(user, OurRoutes.ASSIGNMENTS.getPath(),
-                                    jsonConverter.toJson(new Assignment(parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8]))).getJson());
+                                    jsonConverter.toJson(new Assignment(parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], OWN_URL, parameter[7]))).getJson());
                             client.setDefaultURL();
                             break;
                         default:
@@ -349,7 +392,7 @@ public class Application {
                 WHOAMI + " - information about me \n" +
                 "Questing: \n" +
                 QUESTS + " - view open quests \n" +
-                QUEST + " <id> - shows the quets \n" +
+                QUEST + " <id> - shows the quests \n" +
                 MAP + " <location> - view the given location \n" +
                 DELIVERIES + " <questId> - view delivery \n" +
                 DELIVER + " <questID> <taskID> <tokenName> - delivers quest \n" +
@@ -363,7 +406,9 @@ public class Application {
                 HIRING + " <groupID> <quest> <message> \n" +
                 GROUP + " - creates a new group and saves it \n" +
                 MEMBER + " - list members of the group\n" +
-                ASSIGN + "<username> <ID> <taskURI> <resourceURI> <method> <data> <callbackURI> <message>\n" +
+                ASSIGN + "<username> <ID> <taskURI> <resourceURI> <method> <data> <message>\n" +
+                ASSIGNMENTS + " - lists all assignments \n" +
+                RESULT + " <ID> <method> <data> <message> \n" +
                 "Debug commands: \n" +
                 GET + " <path> - GET on given path \n" +
                 POST + " <path> <body> - POST with given path and body \n" +

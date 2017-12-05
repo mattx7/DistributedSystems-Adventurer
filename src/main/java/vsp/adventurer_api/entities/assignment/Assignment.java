@@ -1,11 +1,10 @@
-package vsp.adventurer_api.entities;
+package vsp.adventurer_api.entities.assignment;
 
 /**
  * To fulfill the quests the owner of the group can assign tasks to the other members of the
  * group by posting to the corresponding hero service at the “assignments” url
  */
 public class Assignment {
-    private static long idCounter = 0;
 
     /**
      * some identity chosen by the initiator to identify this request
@@ -50,14 +49,6 @@ public class Assignment {
         this.data = data;
         this.callback = callback;
         this.message = message;
-    }
-
-    public static long getIdCounter() {
-        return idCounter;
-    }
-
-    public static void setIdCounter(final long idCounter) {
-        Assignment.idCounter = idCounter;
     }
 
     public String getId() {
@@ -114,5 +105,18 @@ public class Assignment {
 
     public void setMessage(final String message) {
         this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return "Assignment{" +
+                "id='" + id + '\'' +
+                ", task='" + task + '\'' +
+                ", resource='" + resource + '\'' +
+                ", method='" + method + '\'' +
+                ", data='" + data + '\'' +
+                ", callback='" + callback + '\'' +
+                ", message='" + message + '\'' +
+                '}';
     }
 }

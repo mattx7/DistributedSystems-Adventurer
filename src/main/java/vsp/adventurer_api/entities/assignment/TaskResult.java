@@ -1,4 +1,4 @@
-package vsp.adventurer_api.entities;
+package vsp.adventurer_api.entities.assignment;
 
 public class TaskResult {
 

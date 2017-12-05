@@ -5,15 +5,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.log4j.Logger;
 import vsp.Application;
-import vsp.adventurer_api.entities.Assignment;
 import vsp.adventurer_api.entities.Election;
-import vsp.adventurer_api.entities.Hiring;
 import vsp.adventurer_api.entities.Message;
+import vsp.adventurer_api.entities.assignment.Assignment;
+import vsp.adventurer_api.entities.assignment.TaskResult;
 import vsp.adventurer_api.entities.basic.ServiceEndpoint;
 import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.entities.cache.Cache;
 import vsp.adventurer_api.entities.cache.WebResourceEntityCache;
+import vsp.adventurer_api.entities.group.Hiring;
 import vsp.adventurer_api.http.HTTPResponse;
+import vsp.adventurer_api.http.api.OurRoutes;
 
 import static spark.Spark.*;
 
@@ -76,6 +78,13 @@ public enum FacadeController {
 
         });
 
+        post(OurRoutes.RESULTS.getPath(), (req, resp) -> {
+            final TaskResult result = converter.fromJson(req.body(), TaskResult.class);
+            LOG.debug(result);
+            Cache.RESULTS.add(result);
+            return resp;
+        });
+
         post(Cache.ELECTIONS.route(), (req, resp) -> {
             final Election election = converter.fromJson(req.body(), Election.class);
             LOG.debug(election);
@@ -83,7 +92,7 @@ public enum FacadeController {
         });
     }
 
-    public void updateAssignments() {
-        Cache.ASSIGNMENTS.getObjects().forEach(e -> get("/assignments/" + e.getId(), (req, resp) -> converter.toJson(e)));
+    public void updateAssignments() { // TODO does this work right? und what is with /assignments
+        Cache.ASSIGNMENTS.getObjects().forEach(e -> get(Cache.ASSIGNMENTS.route() + "/" + e.getId(), (req, resp) -> converter.toJson(e)));
     }
 }
