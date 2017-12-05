@@ -326,6 +326,14 @@ public class Application {
 
                 } else if (parameter.length == 5) {
                     switch (parameter[0]) {
+                        case HIRING:
+                            AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.USERS + "/" + parameter[1]).getAs(AdventurerWrapper.class);
+                            Adventurer adventurer = adventurerWrapper.getObject();
+                            client.setTargetURL(adventurer.getUrl(), OWN_PORT);
+                            print(client.post(user, OurRoutes.HIRINGS.getPath(),
+                                    jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + "/" + parameter[1], parameter[2], parameter[3]))).getJson());
+                            client.setDefaultURL();
+                            break;
                         case RESULT:
                             final String id = parameter[1];
                             Assignment assignment = null;
@@ -403,10 +411,10 @@ public class Application {
                 SET_TOKEN + "  <key> - Sets a new token in the header \n" +
                 VISITS + " [<body>] - Visits a location \n" +
                 "Grouping: \n" +
-                HIRING + " <groupID> <quest> <message> \n" +
+                HIRING + " [<adventurer>] <groupID> <quest> <message> \n" +
                 GROUP + " - creates a new group and saves it \n" +
                 MEMBER + " - list members of the group\n" +
-                ASSIGN + "<username> <ID> <taskURI> <resourceURI> <method> <data> <message>\n" +
+                ASSIGN + " <username> <ID> <taskURI> <resourceURI> <method> <data> <message>\n" +
                 ASSIGNMENTS + " - lists all assignments \n" +
                 RESULT + " <ID> <method> <data> <message> \n" +
                 "Debug commands: \n" +
