@@ -327,11 +327,11 @@ public class Application {
                 } else if (parameter.length == 5) {
                     switch (parameter[0]) {
                         case HIRING:
-                            AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.USERS + "/" + parameter[1]).getAs(AdventurerWrapper.class);
+                            AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.ADVENTURERS.getPath() + "/" + parameter[1]).getAs(AdventurerWrapper.class);
                             Adventurer adventurer = adventurerWrapper.getObject();
                             client.setTargetURL(adventurer.getUrl(), OWN_PORT);
                             print(client.post(user, OurRoutes.HIRINGS.getPath(),
-                                    jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + "/" + parameter[1], parameter[2], parameter[3]))).getJson());
+                                    jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + "/" + parameter[2], parameter[3], parameter[4]))).getJson());
                             client.setDefaultURL();
                             break;
                         case RESULT:
@@ -430,13 +430,12 @@ public class Application {
 
 
     public static boolean acceptToNewHiring(String hiring) {
-        holdAwaitCommandAlive = false;
         print("Incoming Hiring:");
         print(hiring);
-        return awaitHiringResponse();
+        return awaitHiringAnswer();
     }
 
-    private static boolean awaitHiringResponse() {
+    private static boolean awaitHiringAnswer() {
         while (true) {
             String parameter = terminal.readLine("Write '!yes' or '!no' to accept the hiring or not: ");
             if ("!yes".equalsIgnoreCase(parameter)) {
