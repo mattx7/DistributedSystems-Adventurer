@@ -5,12 +5,12 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import vsp.adventurer_api.APIClient;
 import vsp.adventurer_api.FacadeController;
-import vsp.adventurer_api.entities.Assignment;
-import vsp.adventurer_api.entities.CreateAdventurer;
-import vsp.adventurer_api.entities.Hiring;
+import vsp.adventurer_api.entities.*;
 import vsp.adventurer_api.entities.basic.Token;
 import vsp.adventurer_api.entities.basic.User;
-import vsp.adventurer_api.entities.group.GroupWrapper;
+import vsp.adventurer_api.entities.cache.Cache;
+import vsp.adventurer_api.entities.group.CreatedGroup;
+import vsp.adventurer_api.entities.group.Group;
 import vsp.adventurer_api.http.HTTPConnectionException;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.api.BlackboardRoutes;
@@ -26,10 +26,12 @@ import java.util.Map;
  * Runs application and interactions.
  */
 public class Application {
+    public static final String MEMBER = "!member";
     private static Logger LOG = Logger.getLogger(Application.class);
 
     private static final int BLACKBOARD_PORT = 24000;
-    private static final int OWN_PORT = 4567;
+    private static final int JAVASPARK_PORT = 4567;
+
     private static final String AWAIT_COMMAND_MARKER = "#IN>";
     private static Gson jsonConverter = new Gson();
 
@@ -54,8 +56,8 @@ public class Application {
     private static final String GROUP = "!group";
     private static final String ASSIGNMENT = "!assignment";
 
-    private static Console terminal;
     private static boolean holdAwaitCommandAlive;
+    private static Console terminal;
     private static String ownIP;
 
     /**
@@ -90,11 +92,9 @@ public class Application {
             // add link/json to taverna/adventurers
             joinTheTaverna(ownIP, user, heroclass);
 
-
             // Start rest-api
             FacadeController.Singleton.run(user, BlackboardRoutes.USERS.getPath() + "/" + user.getName());
-
-            // At /taverna/groups one might post to create a new group. You have to join the group, even when you are the creator.
+            sleep();
             showHelpMessage();
             awaitAndHandleCommand(client, user);
 
@@ -103,6 +103,14 @@ public class Application {
         }
 
 
+    }
+
+    private static void sleep() {
+        try {
+            Thread.sleep(400);
+        } catch (InterruptedException e) {
+            LOG.error("Sleep interrupted: ", e);
+        }
     }
 
     private static void joinTheTaverna(final String ownIP, final User user, final String heroclass) throws IOException {
@@ -181,9 +189,24 @@ public class Application {
                             break;
                         case GROUP:
                             String json = client.post(user, BlackboardRoutes.GROUP.getPath(), "").getJson();
-                            print(json); // TODO save group id
-                            final GroupWrapper wrapper = jsonConverter.fromJson(json, GroupWrapper.class); // TODO GroupWrapper ist hier falsch
-                            LOG.debug("object: " + wrapper);
+                            print(json);
+                            final CreatedGroup createdGroup = jsonConverter.fromJson(json, CreatedGroup.class);
+                            final Group group = createdGroup.getObject().get(0); // dangerous !!!
+                            LOG.debug("object: " + createdGroup);
+                            print(client.post(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId() + "/" + "members", "").getJson());
+                            Cache.GROUPS.add(group);
+                            break;
+                        case MEMBER:
+                            for (Group grp : Cache.GROUPS.getObjects()) {
+                                if (grp.getOwner().equalsIgnoreCase(user.getName())) {
+                                    StringBuilder stringBuilder1 = new StringBuilder();
+                                    for (final String member : grp.getMembers()) {
+                                        stringBuilder1.append(member).append(",");
+                                    }
+                                    stringBuilder1.deleteCharAt(stringBuilder1.length() - 1);
+                                    print(String.valueOf(grp.getId()) + " -> " + stringBuilder1.toString());
+                                }
+                            }
                             break;
                         default:
                             showHelpMessage();
@@ -228,12 +251,12 @@ public class Application {
                             break;
                         case HOST:
                             if ("self".equalsIgnoreCase(param2)) {
-                                client.setTargetURL(ownIP, OWN_PORT);
+                                client.setTargetURL(ownIP, JAVASPARK_PORT);
                                 print("Host changed to own ip");
                             } else {
                                 try {
                                     final Integer ipEnding = Integer.valueOf(param2);
-                                    client.setTargetURL("172.19.0." + ipEnding, OWN_PORT);
+                                    client.setTargetURL("172.19.0." + ipEnding, JAVASPARK_PORT);
                                     print("Host changed to 172.19.0." + ipEnding);
                                 } catch (NumberFormatException e) {
                                     showHelpMessage();
@@ -285,11 +308,15 @@ public class Application {
                             break;
                     }
 
-                } else if (parameter.length == 8) {
+                } else if (parameter.length == 9) {
                     switch (parameter[0]) {
                         case ASSIGNMENT:
+                            final AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.ADVENTURERS + "/" + parameter[1]).getAs(AdventurerWrapper.class);
+                            final Adventurer adventurer = adventurerWrapper.getObject();
+                            client.setTargetURL(adventurer.getUrl(), JAVASPARK_PORT);
                             print(client.post(user, OurRoutes.ASSIGNMENTS.getPath(),
-                                    jsonConverter.toJson(new Assignment(parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7]))).getJson());
+                                    jsonConverter.toJson(new Assignment(parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8]))).getJson());
+                            client.setDefaultURL();
                             break;
                         default:
                             showHelpMessage();
@@ -317,7 +344,7 @@ public class Application {
                 QUEST + " <id> - shows the quets \n" +
                 MAP + " <location> - view the given location \n" +
                 DELIVERIES + " <questId> - view delivery \n" +
-                DELIVER + " <questID> <taskID> <tokenName> - delivers quest" +
+                DELIVER + " <questID> <taskID> <tokenName> - delivers quest \n" +
                 TASK + "\" <questId> - ??? \n" +
                 HOST + " [<ip> <port>| self | <int> ] - change host if nothing set it will be changed to default \n" +
                 NEW_TOKEN + " <key> <token> - saves a token under the key \n" +
@@ -326,8 +353,9 @@ public class Application {
                 VISITS + " [<body>] - Visits a location \n" +
                 "Grouping: \n" +
                 HIRING + " <groupID> <quest> <message> \n" +
-                GROUP + " - create a new group \n" +
-                ASSIGNMENT + " <ID> <taskURI> <resourceURI> <method> <data> <callbackURI> <message>\n" +
+                GROUP + " - creates a new group and saves it \n" +
+                MEMBER + " - list members of the group\n" +
+                ASSIGNMENT + "<username> <ID> <taskURI> <resourceURI> <method> <data> <callbackURI> <message>\n" +
                 "Debug commands: \n" +
                 GET + " <path> - GET on given path \n" +
                 POST + " <path> <body> - POST with given path and body \n" +

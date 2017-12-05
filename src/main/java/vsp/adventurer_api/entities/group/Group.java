@@ -6,13 +6,13 @@ public class Group {
 
     private int id;
 
-    private List<String> member;
+    private List<String> members;
 
     private String owner;
 
-    public Group(final int id, final List<String> member, final String owner) {
+    public Group(final int id, final List<String> members, final String owner) {
         this.id = id;
-        this.member = member;
+        this.members = members;
         this.owner = owner;
     }
 
@@ -24,12 +24,12 @@ public class Group {
         this.id = id;
     }
 
-    public List<String> getMember() {
-        return member;
+    public List<String> getMembers() {
+        return members;
     }
 
-    public void setMember(final List<String> member) {
-        this.member = member;
+    public void setMembers(final List<String> members) {
+        this.members = members;
     }
 
     public String getOwner() {
@@ -44,7 +44,7 @@ public class Group {
     public String toString() {
         return "Group{" +
                 "id=" + id +
-                ", member=" + member +
+                ", members=" + members +
                 ", owner='" + owner + '\'' +
                 '}';
     }

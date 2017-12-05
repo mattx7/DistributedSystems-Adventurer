@@ -81,9 +81,9 @@ answer:
 curl -X GET <IP-from-container>:4567/
 ```
 ### Group
-To see list of groups get:
+To see list of object get:
 ```
-  http://172.19.0.7:5000/taverna/groups
+  http://172.19.0.7:5000/taverna/object
 ```
 
 answer:
@@ -91,8 +91,8 @@ answer:
 {
      {
       "_links": {
-        "members": "/taverna/groups/314/members", 
-        "self": "/taverna/groups/314"
+        "members": "/taverna/object/314/members", 
+        "self": "/taverna/object/314"
       }, 
       "id": 314, 
       "members": [
@@ -108,7 +108,7 @@ answer:
 
 to see members of the group get:
 ```
-  http://172.19.0.7:5000/taverna/groups/314/members
+  http://172.19.0.7:5000/taverna/object/314/members
 ```
 answer:
 ```
@@ -148,9 +148,9 @@ answer:
   "status": "success"
 }
 ```
-POST TO groups
+POST TO object
 ```
-peter:pein@172.19.0.7:5000/taverna/groups
+peter:pein@172.19.0.7:5000/taverna/object
 ```
 answer:
 
@@ -160,8 +160,8 @@ answer:
     "object": [
         {
             "_links": {
-                "members": "/taverna/groups/315/members",
-                "self": "/taverna/groups/315"
+                "members": "/taverna/object/315/members",
+                "self": "/taverna/object/315"
             },
             "id": 315,
             "members": [],
@@ -171,9 +171,9 @@ answer:
     "status": "success"
 }
 ```
-Join groups
+Join object
 ```
-peter:pein@172.19.0.7:5000/taverna/groups/315/members
+peter:pein@172.19.0.7:5000/taverna/object/315/members
 ```
 answer:
 
