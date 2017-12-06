@@ -74,6 +74,9 @@ public class Application {
      */
     public static APIClient client;
 
+
+    public static CreateAdventurer adventurer;
+
     /**
      * Holds only the main method an instance is not necessary.
      */
@@ -97,9 +100,10 @@ public class Application {
             handleRegisterIfNecessary(client, user);
 
             String heroclass = terminal.readLine("Insert your heroclass: ");
+            adventurer = new CreateAdventurer(heroclass, "", OWN_IP);
 
             // add link/json to taverna/adventurers
-            joinTheTaverna(OWN_IP, user, heroclass);
+            postAdventurer(user);
 
             // Start rest-api
             FacadeController.SINGLETON.run(user, BlackboardRoutes.USERS.getPath() + "/" + user.getName());
@@ -122,11 +126,11 @@ public class Application {
         }
     }
 
-    private static void joinTheTaverna(final String ownIP, final User user, final String heroclass) throws IOException {
+    public static void postAdventurer(User user) throws IOException {
         print(client.post(
                 user,
                 BlackboardRoutes.ADVENTURERS.getPath(),
-                jsonConverter.toJson(new CreateAdventurer(heroclass, "", ownIP))).getJson());
+                jsonConverter.toJson(adventurer)).getJson());
     }
 
     @NotNull
@@ -205,19 +209,26 @@ public class Application {
                             print(client.post(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId() + "/" + "members", "").getJson());
                             group = client.get(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId()).getAs(GroupWrapper.class).getObject();
                             Cache.GROUPS.add(group);
+
+                            Application.adventurer.addCapabilities("group");
+                            postAdventurer(user);
+
                             FacadeController.SINGLETON.getEndpoint().setGroup(Application.client.getDefaultURL().split("//")[1] + BlackboardRoutes.GROUP.getPath() + "/" + group.getId());
                             break;
                         case MEMBER:
                             updateGroupMembers(client, user);
-                            for (Group grp : Cache.GROUPS.getObjects()) {
-                                if (grp.getOwner().equalsIgnoreCase(user.getName())) { // TODO sinnvoll?
-                                    StringBuilder stringBuilder1 = new StringBuilder();
-                                    for (final String member : grp.getMembers()) {
-                                        stringBuilder1.append(member).append(",");
-                                    }
-                                    print(String.valueOf(grp.getId()) + " -> " + stringBuilder1.toString());
+                            try {
+                                Group grp = Cache.GROUPS.getObjects().get(0);
+                                StringBuilder strBuilder = new StringBuilder();
+                                for (final String member : grp.getMembers()) {
+                                    strBuilder.append(member).append(",");
                                 }
+                                print(String.valueOf(grp.getId()) + " -> " + strBuilder.toString());
+
+                            } catch (Exception e) {
+                                print("You are not in a group");
                             }
+
                             break;
                         case ASSIGNMENTS:
                             for (Assignment assignment : Cache.ASSIGNMENTS.getObjects()) {
@@ -320,6 +331,9 @@ public class Application {
                     String param4 = parameter[3];
 
                     switch (param1) {
+                        case DELIVER:
+                            print(client.deliver(user, Integer.valueOf(param2), Integer.valueOf(param3), param4).getJson());
+                            break;
                         case HIRING:
                             print(client.post(user, OurRoutes.HIRINGS.getPath(),
                                     jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + "/" + param2, param3, param4))).getJson());
@@ -387,6 +401,7 @@ public class Application {
                 }
             } catch (final IOException | NumberFormatException e) {
                 LOG.error(e);
+                LOG.error(e.getMessage());
             } catch (final TokenNotFoundException e) {
                 LOG.error("Token not found!!!");
             } catch (final Exception e) {

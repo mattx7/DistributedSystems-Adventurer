@@ -13,6 +13,7 @@ import vsp.adventurer_api.entities.basic.ServiceEndpoint;
 import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.entities.cache.Cache;
 import vsp.adventurer_api.entities.cache.WebResourceEntityCache;
+import vsp.adventurer_api.entities.group.GroupWrapper;
 import vsp.adventurer_api.entities.group.Hiring;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.api.OurRoutes;
@@ -48,13 +49,23 @@ public enum FacadeController {
                 hiring = converter.fromJson(req.body(), Hiring.class);
                 final boolean isAccepted = Application.acceptToNewHiring(req.body());
                 if (isAccepted) {
-//                    Cache.HIRINGS.add(hiring); TODO /hirings usefull?
                     Application.client.setDefaultURL(); // to blackboard in case of sending hiring to self
+
                     String groupRoute = hiring.getGroup();
                     getEndpoint().setGroup(Application.client.getDefaultURL().split("//")[1] + groupRoute);
                     final HTTPResponse response = Application.client.post(user, groupRoute + "/members", "");
-                    Application.client.backToOldTarget();
                     LOG.debug("received json: \n" + response.getJson());
+
+                    // add group
+                    GroupWrapper groupWrapper = Application.client.get(user, groupRoute).getAs(GroupWrapper.class);
+                    Cache.GROUPS.getObjects().clear();
+                    Cache.GROUPS.add(groupWrapper.getObject());
+
+                    Application.adventurer.addCapabilities("group");
+                    Application.postAdventurer(user);
+
+                    Application.client.backToOldTarget();
+
                     resp.status(200);
                     return converter.toJson(new Message("hiring accepted"));
                     // TODO some more HTTP codes
@@ -91,6 +102,7 @@ public enum FacadeController {
             LOG.debug("received json: \n" + result);
             getEndpoint().setIdle(false);
             Cache.RESULTS.add(result);
+            Cache.ASSIGNMENTS.getObjects().clear();
             return resp;
         });
 
