@@ -25,11 +25,12 @@ public enum FacadeController {
     private static final Logger LOG = Logger.getLogger(FacadeController.class);
 
     private final Gson converter = new Gson();
+    private ServiceEndpoint endpoint = new ServiceEndpoint("", false);
 
     public void run(User user, String userURI) {
-
+        endpoint.setUser(userURI);
         // basic information
-        get("/", (req, resp) -> converter.toJson(new ServiceEndpoint(userURI, false)));
+        get("/", (req, resp) -> converter.toJson(endpoint));
 
         // our adventurer
         get(userURI, (req, resp) -> converter.toJson(user));
@@ -66,9 +67,14 @@ public enum FacadeController {
         // react to post on /assignments
         post(Cache.ASSIGNMENTS.route(), (req, resp) -> {
             LOG.debug("reqBody: " + req.body());
+
+            if (endpoint.isIdle())
+                return halt(406, "Does already have an assignment");
+
             final Assignment assignment;
             try {
                 assignment = converter.fromJson(req.body(), Assignment.class);
+                getEndpoint().setIdle(true);
                 Application.handleNewAssignment(assignment);
                 resp.status(200);
                 return resp;
@@ -81,6 +87,7 @@ public enum FacadeController {
         post(OurRoutes.RESULTS.getPath(), (req, resp) -> {
             final TaskResult result = converter.fromJson(req.body(), TaskResult.class);
             LOG.debug("received json: \n" + result);
+            getEndpoint().setIdle(false);
             Cache.RESULTS.add(result);
             return resp;
         });
@@ -92,7 +99,12 @@ public enum FacadeController {
         });
     }
 
+    public ServiceEndpoint getEndpoint() {
+        return endpoint;
+    }
+
     public void updateAssignments() { // TODO does this work right? und what is with /assignments
         Cache.ASSIGNMENTS.getObjects().forEach(e -> get(Cache.ASSIGNMENTS.route() + "/" + e.getId(), (req, resp) -> converter.toJson(e)));
     }
+
 }
