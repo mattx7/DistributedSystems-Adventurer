@@ -79,6 +79,10 @@ public class ServiceEndpoint {
         return group;
     }
 
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
     public String getHirings() {
         return hirings;
     }

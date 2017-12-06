@@ -205,7 +205,7 @@ public class Application {
                             print(client.post(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId() + "/" + "members", "").getJson());
                             group = client.get(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId()).getAs(GroupWrapper.class).getObject();
                             Cache.GROUPS.add(group);
-                            // TODO add "group" to capabilities
+                            FacadeController.SINGLETON.getEndpoint().setGroup(Application.client.getDefaultURL().split("//")[1] + BlackboardRoutes.GROUP.getPath() + "/" + group.getId());
                             break;
                         case MEMBER:
                             updateGroupMembers(client, user);

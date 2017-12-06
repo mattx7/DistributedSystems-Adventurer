@@ -61,6 +61,11 @@ public class APIClient {
         this.targetURL = defaultURL;
     }
 
+    @NotNull
+    public String getDefaultURL() {
+        return defaultURL;
+    }
+
     public void backToOldTarget() {
         this.targetURL = this.temp;
     }

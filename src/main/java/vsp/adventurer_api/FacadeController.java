@@ -50,7 +50,9 @@ public enum FacadeController {
                 if (isAccepted) {
 //                    Cache.HIRINGS.add(hiring); TODO /hirings usefull?
                     Application.client.setDefaultURL(); // to blackboard in case of sending hiring to self
-                    final HTTPResponse response = Application.client.post(user, hiring.getGroup() + "/members", "");
+                    String groupRoute = hiring.getGroup();
+                    getEndpoint().setGroup(Application.client.getDefaultURL().split("//")[1] + groupRoute);
+                    final HTTPResponse response = Application.client.post(user, groupRoute + "/members", "");
                     Application.client.backToOldTarget();
                     LOG.debug("received json: \n" + response.getJson());
                     resp.status(200);
