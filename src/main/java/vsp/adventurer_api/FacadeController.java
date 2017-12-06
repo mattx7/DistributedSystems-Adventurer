@@ -80,14 +80,14 @@ public enum FacadeController {
 
         post(OurRoutes.RESULTS.getPath(), (req, resp) -> {
             final TaskResult result = converter.fromJson(req.body(), TaskResult.class);
-            LOG.debug(result);
+            LOG.debug("received json: \n" + result);
             Cache.RESULTS.add(result);
             return resp;
         });
 
         post(Cache.ELECTIONS.route(), (req, resp) -> {
             final Election election = converter.fromJson(req.body(), Election.class);
-            LOG.debug(election);
+            LOG.debug("received json: \n" + election);
             return resp;
         });
     }

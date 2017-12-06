@@ -35,12 +35,12 @@ public class Application {
     public static final String MEMBER = "!member";
     public static final String ASSIGNMENTS = "!assignments";
     public static final String RESULT = "!result";
+    private static final String RESULTS = "!results";
     private static Logger LOG = Logger.getLogger(Application.class);
 
     private static final int BLACKBOARD_PORT = 24000;
     private static final int OWN_PORT = 4567;
     private static String OWN_IP;
-    public static final String OWN_URL = OWN_IP + ":" + OWN_PORT + "/";
 
     private static final String AWAIT_COMMAND_MARKER = "#IN>";
     private static Gson jsonConverter = new Gson();
@@ -224,6 +224,11 @@ public class Application {
                                 print(assignment.toString());
                             }
                             break;
+                        case RESULTS:
+                            for (TaskResult result : Cache.RESULTS.getObjects()) {
+                                print(result.toString());
+                            }
+                            break;
                         default:
                             showHelpMessage();
                             break;
@@ -349,10 +354,13 @@ public class Application {
                                         assignment.getResource(),
                                         parameter[2],
                                         parameter[3],
-                                        BlackboardRoutes.USERS + "/" + user.getName(),
+                                        BlackboardRoutes.USERS.getPath() + "/" + user.getName(),
                                         parameter[4]), TaskResult.class);
                                 LOG.debug("Result: " + json);
-                                client.post(user, assignment.getCallback() + OurRoutes.RESULTS.getPath(), json);
+                                String[] split = assignment.getCallback().split(":");
+                                client.setTargetURL(split[0], Integer.valueOf(split[1]));
+                                client.post(user, OurRoutes.RESULTS.getPath(), json);
+                                client.setDefaultURL();
                             } else {
                                 print(">>> No assignment found with the given ID <<<");
                             }
@@ -368,7 +376,7 @@ public class Application {
                             final Adventurer adventurer = adventurerWrapper.getObject();
                             client.setTargetURL(adventurer.getUrl(), OWN_PORT);
                             print(client.post(user, OurRoutes.ASSIGNMENTS.getPath(),
-                                    jsonConverter.toJson(new Assignment(parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], OWN_URL, parameter[7]))).getJson());
+                                    jsonConverter.toJson(new Assignment(parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], OWN_IP + ":" + OWN_PORT, parameter[7]))).getJson());
                             client.setDefaultURL();
                             break;
                         default:
@@ -394,11 +402,11 @@ public class Application {
     }
 
     private static void showHelpMessage() {
-        print("Basic commands: \n" +
+        print("# Basic commands: \n" +
                 HELP + " - for this output \n" +
                 QUIT + " - closes the terminal \n" +
                 WHOAMI + " - information about me \n" +
-                "Questing: \n" +
+                "# Questing: \n" +
                 QUESTS + " - view open quests \n" +
                 QUEST + " <id> - shows the quests \n" +
                 MAP + " <location> - view the given location \n" +
@@ -410,14 +418,15 @@ public class Application {
                 TOKEN + " - returns list of saved tokens \n" +
                 SET_TOKEN + "  <key> - Sets a new token in the header \n" +
                 VISITS + " [<body>] - Visits a location \n" +
-                "Grouping: \n" +
+                "# Grouping: \n" +
                 HIRING + " [<adventurer>] <groupID> <quest> <message> \n" +
                 GROUP + " - creates a new group and saves it \n" +
                 MEMBER + " - list members of the group\n" +
                 ASSIGN + " <username> <ID> <taskURI> <resourceURI> <method> <data> <message>\n" +
                 ASSIGNMENTS + " - lists all assignments \n" +
                 RESULT + " <ID> <method> <data> <message> \n" +
-                "Debug commands: \n" +
+                RESULTS + " - lists all results \n" +
+                "# Debug commands: \n" +
                 GET + " <path> - GET on given path \n" +
                 POST + " <path> <body> - POST with given path and body \n" +
                 PUT + " <path> <body> - POST with given path and body \n"
@@ -450,7 +459,8 @@ public class Application {
 
     public static void handleNewAssignment(Assignment assignment) {
         Cache.ASSIGNMENTS.add(assignment);
-        print("New Assignment: " + assignment);
-        FacadeController.SINGLETON.updateAssignments();
+        print(">>> New Assignment: " + assignment);
+        // sleep();
+        // FacadeController.SINGLETON.updateAssignments();
     }
 }

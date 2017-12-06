@@ -102,4 +102,17 @@ public class TaskResult {
     public void setMessage(final String message) {
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+        return "TaskResult{" +
+                "id='" + id + '\'' +
+                ", task='" + task + '\'' +
+                ", resource='" + resource + '\'' +
+                ", method='" + method + '\'' +
+                ", data='" + data + '\'' +
+                ", user='" + user + '\'' +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }
