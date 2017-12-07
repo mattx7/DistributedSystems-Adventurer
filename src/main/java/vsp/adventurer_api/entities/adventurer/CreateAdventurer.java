@@ -3,7 +3,8 @@ package vsp.adventurer_api.entities.adventurer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CreateAdventurer {
@@ -33,10 +34,13 @@ public class CreateAdventurer {
         this.capabilities = capabilities;
     }
 
-    public void addCapabilities(String capability) {
-        List<String> capabilityList = Arrays.asList(getCapabilities().split(","));
-        capabilityList.add(capability);
-        this.capabilities = StringUtils.join(capabilityList, ",");
+    public void addCapabilities(String... capabilities) {
+        List<String> oldCapabilities = new ArrayList<>();
+
+        Collections.addAll(oldCapabilities, StringUtils.split(getCapabilities(), ","));
+        Collections.addAll(oldCapabilities, capabilities);
+
+        this.capabilities = StringUtils.join(oldCapabilities, ",");
         LOG.debug("New Capabilities: " + this.capabilities);
     }
 
