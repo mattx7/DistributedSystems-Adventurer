@@ -2,6 +2,7 @@ package vsp.adventurer_api.http;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -204,7 +205,7 @@ public class HTTPRequest {
         }
 
         // BODY
-        if (body != null) {
+        if (StringUtils.isNotBlank(body)) {
             // send body (json)
             LOG.debug("Sending body...");
             try {

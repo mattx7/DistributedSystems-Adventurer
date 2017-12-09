@@ -5,6 +5,9 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import vsp.adventurer_api.APIClient;
 import vsp.adventurer_api.FacadeController;
+import vsp.adventurer_api.election.BullyAlgorithm;
+import vsp.adventurer_api.election.ElectionParticipant;
+import vsp.adventurer_api.entities.Message;
 import vsp.adventurer_api.entities.adventurer.Adventurer;
 import vsp.adventurer_api.entities.adventurer.AdventurerWrapper;
 import vsp.adventurer_api.entities.adventurer.CreateAdventurer;
@@ -23,24 +26,24 @@ import vsp.adventurer_api.http.api.BlackboardRoutes;
 import vsp.adventurer_api.http.api.OurRoutes;
 import vsp.adventurer_api.utility.BlackBoard;
 
+import javax.annotation.Nonnull;
 import java.io.Console;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Runs application and interactions.
  */
 public class Application {
-    public static final String MEMBER = "!member";
-    public static final String ASSIGNMENTS = "!assignments";
-    public static final String RESULT = "!result";
-    private static final String RESULTS = "!results";
     private static Logger LOG = Logger.getLogger(Application.class);
 
     private static final int BLACKBOARD_PORT = 24000;
-    private static final int OWN_PORT = 4567;
-    private static String OWN_IP;
+    public static final int OWN_PORT = 4567;
+    public static String OWN_IP;
 
     private static final String AWAIT_COMMAND_MARKER = "#IN>";
     private static Gson jsonConverter = new Gson();
@@ -65,6 +68,12 @@ public class Application {
     private static final String HIRING = "!hiring";
     private static final String GROUP = "!group";
     private static final String ASSIGN = "!assign";
+    public static final String MEMBER = "!member";
+    public static final String ASSIGNMENTS = "!assignments";
+    public static final String RESULT = "!result";
+    private static final String RESULTS = "!results";
+    private static final String PARTICIPANTS = "!participants";
+    private static final String ELECTION = "!election";
 
     private static boolean holdAwaitCommandAlive;
     private static Console terminal;
@@ -76,6 +85,8 @@ public class Application {
 
 
     public static CreateAdventurer adventurer;
+    private static User user;
+    public static BullyAlgorithm election = new BullyAlgorithm();
 
     /**
      * Holds only the main method an instance is not necessary.
@@ -93,7 +104,7 @@ public class Application {
 
             // interactions
             terminal = System.console();
-            User user = insertUser();
+            user = insertUser();
             LOG.debug("New user " + user.getName() + ":" + user.getPassword());
 
             // login or register
@@ -210,10 +221,18 @@ public class Application {
                             group = client.get(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId()).getAs(GroupWrapper.class).getObject();
                             Cache.GROUPS.add(group);
 
-                            Application.adventurer.addCapabilities("group");
+                            adventurer.addCapabilities("group");
+                            adventurer.addCapabilities("election");
                             postAdventurer(user);
 
                             FacadeController.SINGLETON.getEndpoint().setGroup(Application.client.getDefaultURL().split("//")[1] + BlackboardRoutes.GROUP.getPath() + "/" + group.getId());
+
+                            // inti election as coordinator
+                            ElectionParticipant yourself = new ElectionParticipant(OWN_IP, OWN_PORT);
+                            election.join(yourself);
+                            election.setYourself(yourself);
+
+
                             break;
                         case MEMBER:
                             updateGroupMembers(client, user);
@@ -239,6 +258,18 @@ public class Application {
                             for (TaskResult result : Cache.RESULTS.getObjects()) {
                                 print(result.toString());
                             }
+                            break;
+                        case PARTICIPANTS:
+                            Set<ElectionParticipant> participants = election.getParticipants();
+                            StringBuilder strBuilder = new StringBuilder();
+                            print("PARTICIPANTS:\n");
+                            for (final ElectionParticipant part : participants) {
+                                strBuilder.append(part.getId()).append(") ").append(part.getURL()).append("\n");
+                            }
+                            print(strBuilder.toString());
+                            break;
+                        case ELECTION:
+                            election.process();
                             break;
                         default:
                             showHelpMessage();
@@ -346,9 +377,14 @@ public class Application {
                 } else if (parameter.length == 5) {
                     switch (parameter[0]) {
                         case HIRING:
-                            AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.ADVENTURERS.getPath() + "/" + parameter[1]).getAs(AdventurerWrapper.class);
+                            AdventurerWrapper adventurerWrapper = client
+                                    .get(user, BlackboardRoutes.ADVENTURERS.getPath() + "/" + parameter[1])
+                                    .getAs(AdventurerWrapper.class);
                             Adventurer adventurer = adventurerWrapper.getObject();
-                            client.setTargetURL(adventurer.getUrl(), OWN_PORT);
+                            String url = adventurer.getUrl();
+                            LOG.info(">>> Sending hiring to " + url);
+                            client.setTargetURL(url, OWN_PORT);
+
                             print(client.post(user, OurRoutes.HIRINGS.getPath(),
                                     jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + "/" + parameter[2], parameter[3], parameter[4]))).getJson());
                             client.setDefaultURL();
@@ -397,15 +433,13 @@ public class Application {
                             showHelpMessage();
                             break;
                     }
-
                 }
             } catch (final IOException | NumberFormatException e) {
-                LOG.error(e);
-                LOG.error(e.getMessage());
+                LOG.error("", e);
             } catch (final TokenNotFoundException e) {
                 LOG.error("Token not found!!!");
             } catch (final Exception e) {
-                LOG.error(e);
+                LOG.error("", e);
             }
         }
     }
@@ -436,7 +470,9 @@ public class Application {
                 "# Grouping: \n" +
                 HIRING + " [<adventurer>] <groupID> <quest> <message> \n" +
                 GROUP + " - creates a new group and saves it \n" +
-                MEMBER + " - list members of the group\n" +
+                MEMBER + " - lists members of the group \n" +
+                PARTICIPANTS + " - lists all participants \n" +
+                ELECTION + " - starts a election \n" +
                 ASSIGN + " <username> <ID> <taskURI> <resourceURI> <method> <data> <message>\n" +
                 ASSIGNMENTS + " - lists all assignments \n" +
                 RESULT + " <ID> <method> <data> <message> \n" +
@@ -477,5 +513,36 @@ public class Application {
         print(">>> New Assignment: " + assignment);
         // sleep();
         // FacadeController.SINGLETON.updateAssignments();
+    }
+
+    @Nonnull
+    public static Set<ElectionParticipant> sendElection(Collection<ElectionParticipant> possibleCoordinator) {
+        Set<ElectionParticipant> offlineParticipants = new HashSet<>();
+
+        for (ElectionParticipant participant : possibleCoordinator) {
+            client.setTargetURL(participant.getIp(), participant.getPort());
+            LOG.info("Sending election to " + participant);
+            try {
+                Message message = client.post(user, participant.getElectionRoute(), jsonConverter.toJson(election.getYourself())).getAs(Message.class);
+                print(message != null ? participant.getIp() + ": " + message.getMessage() : "");
+            } catch (IOException e) {
+                print(participant.getIp() + " is offline!!!");
+                offlineParticipants.add(participant);
+            }
+            client.backToOldTarget();
+        }
+        return offlineParticipants;
+    }
+
+    public static void sendCoordinator(ElectionParticipant yourself) {
+        try {
+            for (ElectionParticipant participant : election.getParticipants()) {
+                client.setTargetURL(participant.getIp(), participant.getPort());
+                print(client.post(user, OurRoutes.COORDINATOR.getPath(), jsonConverter.toJson(yourself)).getJson());
+                client.backToOldTarget();
+            }
+        } catch (IOException e) {
+            LOG.error(e);
+        }
     }
 }

@@ -36,7 +36,7 @@ public class HTTPResponse {
     @Nullable // TODO make @NotNull
     public <T> T getAs(@NotNull final Class<T> type) {
         Preconditions.checkNotNull(type, "type should not be null.");
-        LOG.debug("Converting to " + type.getName() + ": \n" + json);
+        LOG.info("Converting to " + type.getSimpleName() + ": \n" + json);
         return jsonConverter.fromJson(json, type);
     }
 }
