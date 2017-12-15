@@ -1,23 +1,23 @@
 package vsp.adventurer_api.entities.basic;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Representation of a user from the rest api.
  */
 public class User {
 
-    @NotNull
+    @Nonnull
     private String name;
 
-    @NotNull
+    @Nonnull
     private String password;
 
     @Nullable
     private Token token;
 
-    public User(@NotNull String name, @NotNull String password) {
+    public User(@Nonnull String name, @Nonnull String password) {
         this.name = name;
         this.password = password;
     }
@@ -26,12 +26,12 @@ public class User {
         this.token = token;
     }
 
-    @NotNull
+    @Nonnull
     public String getName() {
         return name;
     }
 
-    @NotNull
+    @Nonnull
     public String getPassword() {
         return password;
     }

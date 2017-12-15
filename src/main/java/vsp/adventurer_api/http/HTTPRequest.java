@@ -4,11 +4,11 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import vsp.adventurer_api.http.api.Route;
+import vsp.adventurer_api.custom_exceptions.HTTPConnectionException;
 import vsp.adventurer_api.http.auth.HTTPAuthentication;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -34,20 +34,20 @@ public class HTTPRequest {
     /**
      * Address of the rest api.
      */
-    @NotNull
+    @Nonnull
     private String targetURL;
 
     /**
      * Type of request. <b>HAS TO BE SET BEFORE {@link #send()}</b>
      */
     @Nullable
-    private HTTPVerb connectionType;
+    private String connectionType;
 
     /**
      * Resource from the rest api. <b>HAS TO BE SET BEFORE {@link #send()}</b>
      */
     @Nullable
-    private Route webResource;
+    private String webResource;
 
     /**
      * Message body. Can be set with {@link #body(Object)}.
@@ -65,7 +65,7 @@ public class HTTPRequest {
      *
      * @param targetURL Not null.
      */
-    private HTTPRequest(@NotNull String targetURL) {
+    private HTTPRequest(@Nonnull String targetURL) {
         this.targetURL = targetURL;
     }
 
@@ -75,7 +75,7 @@ public class HTTPRequest {
      * @param targetURL Address to the rest api.
      * @return This instance for inline use.
      */
-    public static HTTPRequest to(@NotNull final String targetURL) {
+    public static HTTPRequest to(@Nonnull final String targetURL) {
         Preconditions.checkNotNull(targetURL, "targetURL should not be null.");
 
         return new HTTPRequest(targetURL);
@@ -87,11 +87,11 @@ public class HTTPRequest {
      * @param resource Not null.
      * @return This instance for inline use.
      */
-    public HTTPRequest resource(@NotNull final Route resource) {
+    public HTTPRequest resource(@Nonnull final String resource) {
         Preconditions.checkNotNull(resource, "webResource should not be null.");
 
         this.webResource = resource;
-        LOG.debug("Resource: " + this.webResource.getPath());
+        LOG.debug("Resource: " + this.webResource);
         return this;
     }
 
@@ -101,11 +101,11 @@ public class HTTPRequest {
      * @param type Not null.
      * @return This instance for inline use.
      */
-    public HTTPRequest type(@NotNull final HTTPVerb type) {
+    public HTTPRequest type(@Nonnull final String type) {
         Preconditions.checkNotNull(type, "type should not be null.");
 
         this.connectionType = type;
-        LOG.debug("HTTP Verb: " + this.connectionType.getValue());
+        LOG.debug("HTTP Verb: " + this.connectionType);
         return this;
     }
 
@@ -115,7 +115,7 @@ public class HTTPRequest {
      * @param obj Not null.
      * @return This instance for inline use.
      */
-    public <T> HTTPRequest body(@NotNull final T obj) throws IOException {
+    public <T> HTTPRequest body(@Nonnull final T obj) {
         Preconditions.checkNotNull(obj, "obj should not be null.");
 
         this.body = new Gson().toJson(obj);
@@ -129,7 +129,7 @@ public class HTTPRequest {
      * @param json Not null.
      * @return This instance for inline use.
      */
-    public HTTPRequest body(@NotNull final String json) throws IOException {
+    public HTTPRequest body(@Nonnull final String json) {
         Preconditions.checkNotNull(json, "json should not be null.");
 
         this.body = json;
@@ -143,7 +143,7 @@ public class HTTPRequest {
      * @param authentication Not null.
      * @return This instance for inline use.
      */
-    public HTTPRequest auth(@NotNull final HTTPAuthentication authentication) {
+    public HTTPRequest auth(@Nonnull final HTTPAuthentication authentication) {
         Preconditions.checkNotNull(authentication, "authentication should not be null.");
 
         this.authentication = authentication;
@@ -152,17 +152,17 @@ public class HTTPRequest {
     }
 
     /**
-     * Starts the get request to the given resource. <b>{@link #resource(Route)} and {@link #type(HTTPVerb)} has to be set before this method</b>
+     * Starts the get request to the given resource. <b>{@link #resource(String)} and {@link #type(String)} has to be set before this method</b>
      *
      * @return This instance for inline use.
      * @throws IOException If connection fails.
      */
-    @NotNull
+    @Nonnull
     public HTTPResponse send() throws IOException {
         Preconditions.checkState(connectionType != null, "connectionType has to be set");
         Preconditions.checkState(webResource != null, "webResource has to be set");
 
-        final URL url = new URL(targetURL + webResource.getPath());
+        final URL url = new URL(targetURL + webResource);
         return establishResponse(url);
     }
 
@@ -173,20 +173,20 @@ public class HTTPRequest {
      *
      * @return Not null.
      */
-    @NotNull
-    private BufferedReader getReader(@NotNull final InputStream inputStream) {
+    @Nonnull
+    private BufferedReader getReader(@Nonnull final InputStream inputStream) {
         return new BufferedReader(new InputStreamReader((inputStream)));
     }
 
 
     /**
-     * Starts the connection. <b>{@link #resource(Route)} and {@link #type(HTTPVerb)} has to be set before this method</b>
+     * Starts the connection. <b>{@link #resource(String)} and {@link #type(String)} has to be set before this method</b>
      *
      * @param url address to connect to.
      * @return Not null.
      * @throws IOException If connection fails.
      */
-    private HTTPResponse establishResponse(@NotNull final URL url) throws IOException {
+    private HTTPResponse establishResponse(@Nonnull final URL url) throws IOException {
         Preconditions.checkState(connectionType != null, "connectionType has to be set");
         Preconditions.checkState(webResource != null, "webResource has to be set");
 
@@ -194,7 +194,7 @@ public class HTTPRequest {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
         connection.setRequestProperty("Accept-Charset", CHARSET);
-        connection.setRequestMethod(connectionType.getValue());
+        connection.setRequestMethod(connectionType);
         connection.setConnectTimeout(CONNECTION_TIMEOUT);
         connection.setRequestProperty("Content-Type", "application/json; charset=" + CHARSET);
 
@@ -235,7 +235,7 @@ public class HTTPRequest {
             throw new HTTPConnectionException(connection.getResponseCode(), connection.getResponseMessage(), response);
     }
 
-    @NotNull
+    @Nonnull
     private String extractResponse(BufferedReader responseReader) throws IOException {
         StringBuilder buildResponse = new StringBuilder();
         String line;

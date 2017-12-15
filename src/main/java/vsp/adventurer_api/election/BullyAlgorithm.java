@@ -12,36 +12,72 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class BullyAlgorithm {
-
     private static final Logger LOG = Logger.getLogger(BullyAlgorithm.class);
 
+    /**
+     * Should be increase after access.
+     */
     private static int idCount = 1;
 
+    /**
+     * All registered participants.
+     */
     private Set<ElectionParticipant> participants = new HashSet<>();
 
+    /**
+     * Holds the coordinator/bully.
+     */
     private ElectionParticipant coordinator;
 
+    /**
+     * Yourself as participant.
+     */
     private ElectionParticipant yourself;
 
     private boolean isInProgress = false;
 
-    /**
-     * For the first coordinator,
-     */
     public BullyAlgorithm() {
     }
 
+    /**
+     * Returns id and increases the counter afterwards.
+     */
     long nextId() {
         return idCount++;
     }
 
-    public ElectionParticipant join(ElectionParticipant newParticipant) {
+    /**
+     * Given participants joins the topology.
+     *
+     * @param newParticipant Not null.
+     * @return Given participant with a new ID.
+     */
+    public ElectionParticipant join(@Nonnull ElectionParticipant newParticipant) {
         if (this.participants.add(newParticipant)) {
             newParticipant.setId(nextId());
             return newParticipant;
         }
         throw new IllegalArgumentException("Participant is already in the topology");
     }
+
+    /**
+     * Registers a already existing participants to the topology on this server.
+     *
+     * @param alreadyJoinedParticipants has to already a part of the topology.
+     */
+    public void add(@Nonnull ElectionParticipant... alreadyJoinedParticipants) {
+        Arrays.asList(alreadyJoinedParticipants).forEach(elem -> {
+            System.out.println("adding " + elem);
+            Long newID = elem.getId();
+            checkArgument(newID != null);
+            if (idCount < newID) {
+                idCount = Math.toIntExact(newID);
+            }
+            this.participants.add(elem);
+
+        });
+    }
+
 
     public boolean isCoordinator() {
         return yourself.equals(coordinator);
@@ -53,19 +89,6 @@ public class BullyAlgorithm {
 
     public boolean isProcessing() {
         return isInProgress;
-    }
-
-    public void add(ElectionParticipant... existingParticipants) {
-        Arrays.asList(existingParticipants).forEach(elem -> {
-            System.out.println("adding " + elem);
-            Long newID = elem.getId();
-            checkArgument(newID != null);
-            if (idCount < newID) {
-                idCount = Math.toIntExact(newID);
-            }
-            this.participants.add(elem);
-
-        });
     }
 
     public void clear() {

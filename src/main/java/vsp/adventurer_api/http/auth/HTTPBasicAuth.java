@@ -1,9 +1,9 @@
 package vsp.adventurer_api.http.auth;
 
 import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.NotNull;
 import vsp.adventurer_api.entities.basic.User;
 
+import javax.annotation.Nonnull;
 import java.util.Base64;
 
 /**
@@ -11,14 +11,14 @@ import java.util.Base64;
  */
 public class HTTPBasicAuth implements HTTPAuthentication {
 
-    @NotNull
+    @Nonnull
     private final String username;
 
-    @NotNull
+    @Nonnull
     private final String password;
 
 
-    public HTTPBasicAuth(@NotNull String username, @NotNull String password) {
+    public HTTPBasicAuth(@Nonnull String username, @Nonnull String password) {
         Preconditions.checkNotNull(username, "username must not be null.");
         Preconditions.checkNotNull(password, "password must not be null.");
 
@@ -32,7 +32,7 @@ public class HTTPBasicAuth implements HTTPAuthentication {
      * @param user Not null.
      * @return New Instance of this class.
      */
-    public static HTTPBasicAuth forUser(@NotNull final User user) {
+    public static HTTPBasicAuth forUser(@Nonnull final User user) {
         Preconditions.checkNotNull(user, "user must not be null.");
 
         return new HTTPBasicAuth(user.getName(), user.getPassword());

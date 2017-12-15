@@ -1,23 +1,22 @@
 package vsp.adventurer_api.entities.basic;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Date;
 
 public class Token {
-    @NotNull
+    @Nonnull
     private final String token;
 
     @Nullable
     private final Date date; // TODO test if this is set after json conversion
 
-    public Token(@NotNull final String token, @Nullable final Date date) {
+    public Token(@Nonnull final String token, @Nullable final Date date) {
         this.token = token;
         this.date = date;
     }
 
-    @NotNull
+    @Nonnull
     public String getToken() {
         return token;
     }

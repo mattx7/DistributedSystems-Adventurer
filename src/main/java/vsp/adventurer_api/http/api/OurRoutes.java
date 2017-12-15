@@ -1,16 +1,20 @@
 package vsp.adventurer_api.http.api;
 
-import org.jetbrains.annotations.NotNull;
 
-public enum OurRoutes implements Route {
-    HIRINGS("/hirings"),
-    GROUP("/group"),
-    ASSIGNMENTS("/assignments"),
-    MESSAGES("/messages"),
-    ELECTION("/election"),
-    RESULTS("/results"),
-    JOIN("/join"),
-    COORDINATOR("/coordinator");
+import javax.annotation.Nonnull;
+
+/**
+ * Our intern routes for the rest API.
+ */
+public class OurRoutes implements Route {
+    public static final String HIRINGS = "/hirings";
+    public static final String GROUP = "/group";
+    public static final String ASSIGNMENTS = "/assignments";
+    public static final String MESSAGES = "/messages";
+    public static final String ELECTION = "/election";
+    public static final String RESULTS = "/results";
+    public static final String JOIN = "/join";
+    public static final String COORDINATOR = "/coordinator";
 
 
     private String path;
@@ -19,7 +23,7 @@ public enum OurRoutes implements Route {
         this.path = path;
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public String getPath() {
         return path;

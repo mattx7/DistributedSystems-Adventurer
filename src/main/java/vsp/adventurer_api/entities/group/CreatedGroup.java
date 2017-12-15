@@ -28,6 +28,10 @@ public class CreatedGroup {
         return object;
     }
 
+    public Group getGroup() {
+        return object.get(0); // danger !!!
+    }
+
     public void setObject(List<Group> object) {
         this.object = object;
     }

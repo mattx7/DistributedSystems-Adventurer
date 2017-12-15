@@ -1,9 +1,9 @@
 package vsp.adventurer_api.utility;
 
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import vsp.adventurer_api.http.HTTPRequest;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -52,7 +52,7 @@ public class BlackBoard {
     /**
      * @return the blackboard port
      */
-    @NotNull
+    @Nonnull
     public Integer getPort() {
         return port;
     }

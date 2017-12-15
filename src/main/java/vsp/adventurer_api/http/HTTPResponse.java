@@ -3,8 +3,9 @@ package vsp.adventurer_api.http;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Representation of a HTTP-response.
@@ -12,16 +13,16 @@ import org.jetbrains.annotations.Nullable;
 public class HTTPResponse {
     private static Logger LOG = Logger.getLogger(HTTPResponse.class);
 
-    @NotNull
+    @Nonnull
     private final String json;
 
     private Gson jsonConverter = new Gson();
 
-    HTTPResponse(@NotNull String json) {
+    HTTPResponse(@Nonnull String json) {
         this.json = json;
     }
 
-    @NotNull
+    @Nonnull
     public String getJson() {
         return json;
     }
@@ -33,8 +34,8 @@ public class HTTPResponse {
      * @param <T>  Type of the desired object.
      * @return An object of type T. Returns null if response is null or empty.
      */
-    @Nullable // TODO make @NotNull
-    public <T> T getAs(@NotNull final Class<T> type) {
+    @Nullable // TODO make @Nonnull
+    public <T> T getAs(@Nonnull final Class<T> type) {
         Preconditions.checkNotNull(type, "type should not be null.");
         LOG.info("Converting to " + type.getSimpleName() + ": \n" + json);
         return jsonConverter.fromJson(json, type);

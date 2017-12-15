@@ -1,22 +1,12 @@
 package vsp.adventurer_api.http;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Offers all possible HTTP-Verbs for this application.
  */
-public enum HTTPVerb {
-    GET("GET"), POST("POST"), PUT("PUT");
+public class HTTPVerb {
+    public static final String GET = "GET";
+    public static final String POST = "POST";
+    public static final String PUT = "PUT";
 
-    @NotNull
-    private String value;
 
-    HTTPVerb(@NotNull final String value) {
-        this.value = value;
-    }
-
-    @NotNull
-    public String getValue() {
-        return value;
-    }
 }

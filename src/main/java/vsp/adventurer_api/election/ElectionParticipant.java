@@ -23,7 +23,7 @@ public class ElectionParticipant implements Cloneable {
     public ElectionParticipant(String ip, int port) {
         this.ip = ip;
         this.port = port;
-        this.route = OurRoutes.ELECTION.getPath();
+        this.route = OurRoutes.ELECTION;
     }
 
     public Long getId() {

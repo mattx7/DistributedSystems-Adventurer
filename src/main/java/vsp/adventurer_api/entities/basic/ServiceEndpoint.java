@@ -52,11 +52,11 @@ public class ServiceEndpoint {
     public ServiceEndpoint(String user, boolean idle) {
         this.user = user;
         this.idle = idle;
-        this.group = OurRoutes.GROUP.getPath();
-        this.hirings = OurRoutes.HIRINGS.getPath();
-        this.assignments = OurRoutes.ASSIGNMENTS.getPath();
-        this.messages = OurRoutes.MESSAGES.getPath();
-        this.election = OurRoutes.ELECTION.getPath();
+        this.group = OurRoutes.GROUP;
+        this.hirings = OurRoutes.HIRINGS;
+        this.assignments = OurRoutes.ASSIGNMENTS;
+        this.messages = OurRoutes.MESSAGES;
+        this.election = OurRoutes.ELECTION;
     }
 
     public String getUser() {

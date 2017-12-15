@@ -1,7 +1,6 @@
-package vsp.adventurer_api.http;
+package vsp.adventurer_api.custom_exceptions;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import java.io.IOException;
 
 /**
@@ -11,9 +10,9 @@ public class HTTPConnectionException extends IOException {
 
     private final int errorCode;
 
-    HTTPConnectionException(final int errorCode,
-                            @NotNull final String codeDetails,
-                            @NotNull final String message) {
+    public HTTPConnectionException(final int errorCode,
+                                   @Nonnull final String codeDetails,
+                                   @Nonnull final String message) {
         super(errorCode + " " + codeDetails + "\n" + message);
         this.errorCode = errorCode;
     }

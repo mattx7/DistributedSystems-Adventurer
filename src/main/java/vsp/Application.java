@@ -2,9 +2,10 @@ package vsp;
 
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import vsp.adventurer_api.APIClient;
-import vsp.adventurer_api.FacadeController;
+import vsp.adventurer_api.ServiceController;
+import vsp.adventurer_api.custom_exceptions.HTTPConnectionException;
+import vsp.adventurer_api.custom_exceptions.TokenNotFoundException;
 import vsp.adventurer_api.election.BullyAlgorithm;
 import vsp.adventurer_api.election.ElectionParticipant;
 import vsp.adventurer_api.entities.Message;
@@ -20,20 +21,18 @@ import vsp.adventurer_api.entities.group.CreatedGroup;
 import vsp.adventurer_api.entities.group.Group;
 import vsp.adventurer_api.entities.group.GroupWrapper;
 import vsp.adventurer_api.entities.group.Hiring;
-import vsp.adventurer_api.http.HTTPConnectionException;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.api.BlackboardRoutes;
 import vsp.adventurer_api.http.api.OurRoutes;
+import vsp.adventurer_api.http.api.Route;
 import vsp.adventurer_api.utility.BlackBoard;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Console;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Runs application and interactions.
@@ -43,10 +42,18 @@ public class Application {
 
     private static final int BLACKBOARD_PORT = 24000;
     public static final int OWN_PORT = 4567;
+
+    /**
+     * Will be set after start.
+     */
+    @Nullable
     public static String OWN_IP;
 
+    @Nonnull
     private static final String AWAIT_COMMAND_MARKER = "#IN>";
-    private static Gson jsonConverter = new Gson();
+
+    @Nonnull
+    private static final Gson CONVERTER = new Gson();
 
     private static final String HELP = "!help";
     private static final String WHOAMI = "!whoami";
@@ -68,24 +75,36 @@ public class Application {
     private static final String HIRING = "!hiring";
     private static final String GROUP = "!group";
     private static final String ASSIGN = "!assign";
-    public static final String MEMBER = "!member";
-    public static final String ASSIGNMENTS = "!assignments";
-    public static final String RESULT = "!result";
+    private static final String MEMBER = "!member";
+    private static final String ASSIGNMENTS = "!assignments";
+    private static final String RESULT = "!result";
     private static final String RESULTS = "!results";
     private static final String PARTICIPANTS = "!participants";
     private static final String ELECTION = "!election";
 
-    private static boolean holdAwaitCommandAlive;
-    private static Console terminal;
+    /**
+     * Holds the terminal for intern int- and output.
+     */
+    private static Console TERMINAL;
 
     /**
      * Holds client for everyone
      */
-    public static APIClient client;
+    public static APIClient CLIENT;
 
-
+    /**
+     * Our adventurer in the taverna.
+     */
     public static CreateAdventurer adventurer;
+
+    /**
+     * Our user.
+     */
     private static User user;
+
+    /**
+     * THe election algorithm.
+     */
     public static BullyAlgorithm election = new BullyAlgorithm();
 
     /**
@@ -94,90 +113,46 @@ public class Application {
     private Application() {
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         LOG.debug("Starting application...");
 
         try {
             BlackBoard blackBoard = new BlackBoard(BLACKBOARD_PORT);
-            client = new APIClient(blackBoard.getHostAddress(), blackBoard.getPort());
+            CLIENT = new APIClient(blackBoard.getHostAddress(), blackBoard.getPort());
             OWN_IP = InetAddress.getLocalHost().getHostAddress();
 
             // interactions
-            terminal = System.console();
+            TERMINAL = System.console();
             user = insertUser();
             LOG.debug("New user " + user.getName() + ":" + user.getPassword());
 
             // login or register
-            handleRegisterIfNecessary(client, user);
+            handleRegisterIfNecessary(CLIENT, user);
 
-            String heroclass = terminal.readLine("Insert your heroclass: ");
-            adventurer = new CreateAdventurer(heroclass, "", OWN_IP);
+            String heroClass = TERMINAL.readLine("Insert your heroclass: ");
+            adventurer = new CreateAdventurer(heroClass, "", OWN_IP);
 
             // add link/json to taverna/adventurers
             postAdventurer(user);
 
             // Start rest-api
-            FacadeController.SINGLETON.run(user, BlackboardRoutes.USERS.getPath() + "/" + user.getName());
+            ServiceController.SINGLETON.run(user);
             sleep();
             showHelpMessage();
-            awaitAndHandleCommand(client, user);
+            awaitAndHandleCommand(CLIENT, user);
 
         } catch (final IOException e) {
             LOG.error(e);
         }
 
-
     }
 
-    private static void sleep() {
-        try {
-            Thread.sleep(400);
-        } catch (InterruptedException e) {
-            LOG.error("Sleep interrupted: ", e);
-        }
-    }
-
-    public static void postAdventurer(User user) throws IOException {
-        print(client.post(
-                user,
-                BlackboardRoutes.ADVENTURERS.getPath(),
-                jsonConverter.toJson(adventurer)).getJson());
-    }
-
-    @NotNull
-    private static User insertUser() {
-        print("Please login or register with a username and password!");
-        String username = terminal.readLine("Username: ");
-        String password = terminal.readLine("password: ");
-        return new User(username, password);
-    }
-
-    private static void handleRegisterIfNecessary(@NotNull final APIClient client,
-                                                  @NotNull final User user) throws IOException {
-        try {
-            final HTTPResponse response = client.register(user);
-            LOG.debug(response);
-            print("User is now registered!");
-        } catch (final IOException e) {
-            if (e instanceof HTTPConnectionException && ((HTTPConnectionException) e).getErrorCode() == 409)
-                print("User already registered!");
-            else
-                LOG.error(e.getMessage());
-        }
-
-        // login
-        final Token token = client.login(user).getAs(Token.class);
-        user.setToken(token);
-        print((token == null) ? "Login failed!" : "User logged in");
-        client.saveToken("default", token.getToken()); // TODO NPE
-    }
-
-    private static void awaitAndHandleCommand(@NotNull final APIClient client,
-                                              @NotNull final User user) throws IOException {
-        holdAwaitCommandAlive = true;
+    private static void awaitAndHandleCommand(@Nonnull final APIClient client,
+                                              @Nonnull final User user) {
+        boolean holdAwaitCommandAlive = true;
         while (holdAwaitCommandAlive) {
             // input
-            String[] parameter = terminal.readLine(AWAIT_COMMAND_MARKER).split(" ");
+            String[] parameter = TERMINAL.readLine(AWAIT_COMMAND_MARKER).split(" ");
 
             try {
                 if (parameter.length == 1) {
@@ -199,33 +174,29 @@ public class Application {
                             print("Host changed to default");
                             break;
                         case VISITS:
-                            print(client.get(user, BlackboardRoutes.VISITS.getPath()).getJson());
+                            print(client.get(user, BlackboardRoutes.VISITS).getJson());
                             break;
                         case TOKEN:
-                            final StringBuilder stringBuilder = new StringBuilder();
-                            for (Map.Entry<String, String> entry : client.getTokenMap().entrySet()) {
-                                stringBuilder
-                                        .append(entry.getKey())
-                                        .append(" -> ")
-                                        .append(entry.getValue());
-                            }
-                            print(stringBuilder.toString());
+                            printToken(client);
                             break;
                         case GROUP:
-                            String json = client.post(user, BlackboardRoutes.GROUP.getPath(), "").getJson();
-                            print(json);
-                            final CreatedGroup createdGroup = jsonConverter.fromJson(json, CreatedGroup.class);
-                            Group group = createdGroup.getObject().get(0); // dangerous !!!
-                            LOG.debug("object: " + createdGroup);
-                            print(client.post(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId() + "/" + "members", "").getJson());
-                            group = client.get(user, BlackboardRoutes.GROUP.getPath() + "/" + group.getId()).getAs(GroupWrapper.class).getObject();
+                            final CreatedGroup createdGroup = client.post(user, BlackboardRoutes.GROUP, "").getAs(CreatedGroup.class);
+                            Group newGroup = createdGroup.getGroup();
+
+//                            print(client
+//                                    .post(user, Route.concat(BlackboardRoutes.GROUP, String.valueOf(createdGroup.getId()), "members"), "")
+//                                    .getJson());
+
+                            Group group = client
+                                    .get(user, Route.concat(BlackboardRoutes.GROUP, String.valueOf(newGroup.getId())))
+                                    .getAs(GroupWrapper.class)
+                                    .getObject();
+
                             Cache.GROUPS.add(group);
 
-                            adventurer.addCapabilities("group");
-                            adventurer.addCapabilities("election");
-                            postAdventurer(user);
+                            addCapabilities(user, "group", "election");
 
-                            FacadeController.SINGLETON.getEndpoint().setGroup(Application.client.getDefaultURL().split("//")[1] + BlackboardRoutes.GROUP.getPath() + "/" + group.getId());
+                            ServiceController.SINGLETON.getEndpoint().setGroup(Application.CLIENT.getDefaultURL().split("//")[1] + BlackboardRoutes.GROUP + "/" + group.getId());
 
                             // inti election as coordinator
                             ElectionParticipant yourself = new ElectionParticipant(OWN_IP, OWN_PORT);
@@ -310,7 +281,7 @@ public class Application {
                             print("Auth token is now set to " + param2);
                             break;
                         case VISITS:
-                            print(client.post(user, BlackboardRoutes.VISITS.getPath(), param2).getJson());
+                            print(client.post(user, BlackboardRoutes.VISITS, param2).getJson());
                             break;
                         case HOST:
                             if ("self".equalsIgnoreCase(param2)) {
@@ -366,8 +337,8 @@ public class Application {
                             print(client.deliver(user, Integer.valueOf(param2), Integer.valueOf(param3), param4).getJson());
                             break;
                         case HIRING:
-                            print(client.post(user, OurRoutes.HIRINGS.getPath(),
-                                    jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + "/" + param2, param3, param4))).getJson());
+                            print(client.post(user, OurRoutes.HIRINGS,
+                                    CONVERTER.toJson(new Hiring(BlackboardRoutes.GROUP + "/" + param2, param3, param4))).getJson());
                             break;
                         default:
                             showHelpMessage();
@@ -377,16 +348,13 @@ public class Application {
                 } else if (parameter.length == 5) {
                     switch (parameter[0]) {
                         case HIRING:
-                            AdventurerWrapper adventurerWrapper = client
-                                    .get(user, BlackboardRoutes.ADVENTURERS.getPath() + "/" + parameter[1])
-                                    .getAs(AdventurerWrapper.class);
-                            Adventurer adventurer = adventurerWrapper.getObject();
+                            Adventurer adventurer = getAdventurer(client, parameter[1]);
                             String url = adventurer.getUrl();
                             LOG.info(">>> Sending hiring to " + url);
                             client.setTargetURL(url, OWN_PORT);
 
-                            print(client.post(user, OurRoutes.HIRINGS.getPath(),
-                                    jsonConverter.toJson(new Hiring(BlackboardRoutes.GROUP.getPath() + "/" + parameter[2], parameter[3], parameter[4]))).getJson());
+                            print(client.post(user, OurRoutes.HIRINGS,
+                                    CONVERTER.toJson(new Hiring(BlackboardRoutes.GROUP + "/" + parameter[2], parameter[3], parameter[4]))).getJson());
                             client.setDefaultURL();
                             break;
                         case RESULT:
@@ -399,17 +367,17 @@ public class Application {
                             }
 
                             if (assignment != null) {
-                                final String json = jsonConverter.toJson(new TaskResult(assignment.getId(),
+                                final String json = CONVERTER.toJson(new TaskResult(assignment.getId(),
                                         assignment.getTask(),
                                         assignment.getResource(),
                                         parameter[2],
                                         parameter[3],
-                                        BlackboardRoutes.USERS.getPath() + "/" + user.getName(),
+                                        BlackboardRoutes.USERS + "/" + user.getName(),
                                         parameter[4]), TaskResult.class);
                                 LOG.debug("Result: " + json);
                                 String[] split = assignment.getCallback().split(":");
                                 client.setTargetURL(split[0], Integer.valueOf(split[1]));
-                                client.post(user, OurRoutes.RESULTS.getPath(), json);
+                                client.post(user, OurRoutes.RESULTS, json);
                                 client.setDefaultURL();
                             } else {
                                 print(">>> No assignment found with the given ID <<<");
@@ -422,11 +390,10 @@ public class Application {
                 } else if (parameter.length == 8) {
                     switch (parameter[0]) {
                         case ASSIGN:
-                            final AdventurerWrapper adventurerWrapper = client.get(user, BlackboardRoutes.ADVENTURERS.getPath() + "/" + parameter[1]).getAs(AdventurerWrapper.class);
-                            final Adventurer adventurer = adventurerWrapper.getObject();
+                            final Adventurer adventurer = getAdventurer(client, parameter[1]);
                             client.setTargetURL(adventurer.getUrl(), OWN_PORT);
-                            print(client.post(user, OurRoutes.ASSIGNMENTS.getPath(),
-                                    jsonConverter.toJson(new Assignment(parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], OWN_IP + ":" + OWN_PORT, parameter[7]))).getJson());
+                            print(client.post(user, OurRoutes.ASSIGNMENTS,
+                                    CONVERTER.toJson(new Assignment(parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], OWN_IP + ":" + OWN_PORT, parameter[7]))).getJson());
                             client.setDefaultURL();
                             break;
                         default:
@@ -444,9 +411,91 @@ public class Application {
         }
     }
 
-    private static void updateGroupMembers(@NotNull APIClient client, @NotNull User user) throws IOException {
+    /**
+     * Gets a adventurer from the taverna by name.
+     */
+    private static Adventurer getAdventurer(@Nonnull APIClient client, String name) throws IOException {
+        final AdventurerWrapper wrapper = client.get(user, BlackboardRoutes.ADVENTURERS + "/" + name).getAs(AdventurerWrapper.class);
+        return wrapper.getObject();
+    }
+
+    private static void sleep() {
+        try {
+            Thread.sleep(400);
+        } catch (InterruptedException e) {
+            LOG.error("Sleep interrupted: ", e);
+        }
+    }
+
+    /**
+     * Creates/Updates our adventurer in the tavern.
+     *
+     * @see #adventurer
+     */
+    public static void postAdventurer(User user) throws IOException {
+        print(CLIENT.post(
+                user,
+                BlackboardRoutes.ADVENTURERS,
+                CONVERTER.toJson(adventurer)).getJson());
+    }
+
+    @Nonnull
+    private static User insertUser() {
+        print("Please login or register with a username and password!");
+        String username = TERMINAL.readLine("Username: ");
+        String password = TERMINAL.readLine("password: ");
+        return new User(username, password);
+    }
+
+    /**
+     * Registers or logs a user into the blackboard.
+     */
+    private static void handleRegisterIfNecessary(@Nonnull final APIClient client,
+                                                  @Nonnull final User user) throws IOException {
+        try {
+            final HTTPResponse response = client.register(user);
+            LOG.debug(response);
+            print("User is now registered!");
+        } catch (final IOException e) {
+            if (e instanceof HTTPConnectionException && ((HTTPConnectionException) e).getErrorCode() == 409)
+                print("User already registered!");
+            else
+                LOG.error(e.getMessage());
+        }
+
+        // login
+        final Token token = client.login(user).getAs(Token.class);
+        user.setToken(token);
+        print((token == null) ? "Login failed!" : "User logged in");
+        client.saveToken("default", token.getToken()); // TODO NPE
+    }
+
+    /**
+     * Adds new capabilities to the adventurer-service.
+     *
+     * @param user       Not null.
+     * @param capability Not null
+     * @throws IOException
+     */
+    public static void addCapabilities(@Nonnull User user, @Nonnull String... capability) throws IOException {
+        Arrays.asList(capability).forEach(e -> adventurer.addCapabilities(e));
+        postAdventurer(user);
+    }
+
+    private static void printToken(@Nonnull APIClient client) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, String> entry : client.getTokenMap().entrySet()) {
+            stringBuilder
+                    .append(entry.getKey())
+                    .append(" -> ")
+                    .append(entry.getValue());
+        }
+        print(stringBuilder.toString());
+    }
+
+    private static void updateGroupMembers(@Nonnull APIClient client, @Nonnull User user) throws IOException {
         for (final Group group1 : Cache.GROUPS.getObjects()) {
-            group1.setMembers(client.get(user, BlackboardRoutes.GROUP.getPath() + "/" + group1.getId()).getAs(GroupWrapper.class).getObject().getMembers());
+            group1.setMembers(client.get(user, BlackboardRoutes.GROUP + "/" + group1.getId()).getAs(GroupWrapper.class).getObject().getMembers());
         }
     }
 
@@ -484,7 +533,7 @@ public class Application {
         );
     }
 
-    private static void print(@NotNull String message) {
+    private static void print(@Nonnull String message) {
         System.out.println(message);
     }
 
@@ -497,7 +546,7 @@ public class Application {
 
     private static boolean awaitHiringAnswer() {
         while (true) {
-            String parameter = terminal.readLine("Write '!yes' or '!no' to accept the hiring or not: ");
+            String parameter = TERMINAL.readLine("Write '!yes' or '!no' to accept the hiring or not: ");
             if ("!yes".equalsIgnoreCase(parameter)) {
                 return true;
             } else if ("!no".equalsIgnoreCase(parameter)) {
@@ -520,16 +569,16 @@ public class Application {
         Set<ElectionParticipant> offlineParticipants = new HashSet<>();
 
         for (ElectionParticipant participant : possibleCoordinator) {
-            client.setTargetURL(participant.getIp(), participant.getPort());
+            CLIENT.setTargetURL(participant.getIp(), participant.getPort());
             LOG.info("Sending election to " + participant);
             try {
-                Message message = client.post(user, participant.getElectionRoute(), jsonConverter.toJson(election.getYourself())).getAs(Message.class);
+                Message message = CLIENT.post(user, participant.getElectionRoute(), CONVERTER.toJson(election.getYourself())).getAs(Message.class);
                 print(message != null ? participant.getIp() + ": " + message.getMessage() : "");
             } catch (IOException e) {
                 print(participant.getIp() + " is offline!!!");
                 offlineParticipants.add(participant);
             }
-            client.backToOldTarget();
+            CLIENT.backToOldTarget();
         }
         return offlineParticipants;
     }
@@ -537,9 +586,9 @@ public class Application {
     public static void sendCoordinator(ElectionParticipant yourself) {
         try {
             for (ElectionParticipant participant : election.getParticipants()) {
-                client.setTargetURL(participant.getIp(), participant.getPort());
-                print(client.post(user, OurRoutes.COORDINATOR.getPath(), jsonConverter.toJson(yourself)).getJson());
-                client.backToOldTarget();
+                CLIENT.setTargetURL(participant.getIp(), participant.getPort());
+                print(CLIENT.post(user, OurRoutes.COORDINATOR, CONVERTER.toJson(yourself)).getJson());
+                CLIENT.backToOldTarget();
             }
         } catch (IOException e) {
             LOG.error(e);

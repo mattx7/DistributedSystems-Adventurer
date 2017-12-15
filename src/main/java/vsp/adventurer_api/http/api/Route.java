@@ -1,9 +1,11 @@
 package vsp.adventurer_api.http.api;
 
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.annotation.Nonnull;
 
 /**
- * Representation of a RESTful resource.
+ * Representation of a REST resource/route.
  */
 public interface Route {
 
@@ -12,7 +14,13 @@ public interface Route {
      *
      * @return Not null.
      */
-    @NotNull
+    @Nonnull
     String getPath();
 
+    /**
+     * Combines given arguments with "/"
+     */
+    static String concat(String... routes) {
+        return StringUtils.join(routes, "/");
+    }
 }

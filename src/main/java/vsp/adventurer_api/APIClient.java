@@ -3,20 +3,19 @@ package vsp.adventurer_api;
 
 import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import vsp.Application;
-import vsp.TokenNotFoundException;
+import vsp.adventurer_api.custom_exceptions.TokenNotFoundException;
 import vsp.adventurer_api.entities.basic.Token;
 import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.http.HTTPRequest;
 import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.HTTPVerb;
 import vsp.adventurer_api.http.api.BlackboardRoutes;
-import vsp.adventurer_api.http.api.DebugRoute;
-import vsp.adventurer_api.http.api.SubPath;
+import vsp.adventurer_api.http.api.Route;
 import vsp.adventurer_api.http.auth.HTTPBasicAuth;
 import vsp.adventurer_api.http.auth.HTTPTokenAuth;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,22 +27,22 @@ public class APIClient {
 
     private static Logger LOG = Logger.getLogger(Application.class);
 
-    @NotNull
+    @Nonnull
     private static final String PROTOCOL = "http";
 
     private String temp;
 
-    @NotNull
+    @Nonnull
     private String targetURL;
 
-    @NotNull
+    @Nonnull
     private String defaultURL;
 
-    @NotNull
+    @Nonnull
     private Map<String, String> tokenMap = new HashMap<>();
 
-    public APIClient(@NotNull final String restApiAddress,
-                     @NotNull final Integer restApiPort) {
+    public APIClient(@Nonnull final String restApiAddress,
+                     @Nonnull final Integer restApiPort) {
         Preconditions.checkNotNull(restApiAddress, "restApiAddress should not be null.");
         Preconditions.checkNotNull(restApiPort, "restApiPort should not be null.");
 
@@ -52,7 +51,7 @@ public class APIClient {
         LOG.debug("URL: " + targetURL);
     }
 
-    public void setTargetURL(@NotNull String restApiAddress, @NotNull final Integer restApiPort) {
+    public void setTargetURL(@Nonnull String restApiAddress, @Nonnull final Integer restApiPort) {
         this.targetURL = String.format("%s://%s:%d", PROTOCOL, restApiAddress, restApiPort);
     }
 
@@ -61,7 +60,7 @@ public class APIClient {
         this.targetURL = defaultURL;
     }
 
-    @NotNull
+    @Nonnull
     public String getDefaultURL() {
         return defaultURL;
     }
@@ -72,37 +71,37 @@ public class APIClient {
 
     // ======= for debug/testing ======
 
-    public HTTPResponse get(@NotNull final User user,
-                            @NotNull final String path) throws IOException {
+    public HTTPResponse get(@Nonnull final User user,
+                            @Nonnull final String path) throws IOException {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugRoute(path))
+                .resource(path)
                 .type(HTTPVerb.GET)
                 .auth(HTTPTokenAuth.forUser(user))
                 .send();
     }
 
-    public HTTPResponse post(@NotNull final User user,
-                             @NotNull final String path,
-                             @NotNull final String body) throws IOException {
+    public HTTPResponse post(@Nonnull final User user,
+                             @Nonnull final String path,
+                             @Nonnull final String body) throws IOException {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugRoute(path))
+                .resource(path)
                 .type(HTTPVerb.POST)
                 .auth(HTTPTokenAuth.forUser(user))
                 .body(body)
                 .send();
     }
 
-    public HTTPResponse put(@NotNull final User user,
-                            @NotNull final String path,
-                            @NotNull final String body) throws IOException {
+    public HTTPResponse put(@Nonnull final User user,
+                            @Nonnull final String path,
+                            @Nonnull final String body) throws IOException {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
-                .resource(new DebugRoute(path))
+                .resource(path)
                 .type(HTTPVerb.PUT)
                 .auth(HTTPTokenAuth.forUser(user))
                 .body(body)
@@ -118,7 +117,7 @@ public class APIClient {
      * @return TODO
      * @throws IOException If connection fails.
      */
-    public HTTPResponse register(@NotNull final User user) throws IOException {
+    public HTTPResponse register(@Nonnull final User user) throws IOException {
         LOG.debug("Registration with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
@@ -135,7 +134,7 @@ public class APIClient {
      * @return TODO
      * @throws IOException If connection fails.
      */
-    public HTTPResponse login(@NotNull final User user) throws IOException {
+    public HTTPResponse login(@Nonnull final User user) throws IOException {
         LOG.debug("Login with user '" + user.getName() + "'...");
         return HTTPRequest
                 .to(targetURL)
@@ -153,7 +152,7 @@ public class APIClient {
      * @return TODO
      * @throws IOException If connection fails.
      */
-    public HTTPResponse whoAmI(@NotNull final User user) throws IOException {
+    public HTTPResponse whoAmI(@Nonnull final User user) throws IOException {
         LOG.debug("WhoAmI with user " + user.getName());
         return HTTPRequest
                 .to(targetURL)
@@ -163,7 +162,7 @@ public class APIClient {
                 .send();
     }
 
-    public HTTPResponse quests(@NotNull User user) throws IOException {
+    public HTTPResponse quests(@Nonnull User user) throws IOException {
         LOG.debug("View quests");
         return HTTPRequest
                 .to(targetURL)
@@ -177,20 +176,19 @@ public class APIClient {
         LOG.debug("View quest with id: " + questId);
         return HTTPRequest
                 .to(targetURL)
-                .resource(SubPath.from(
-                        BlackboardRoutes.QUESTS,
+                .resource(Route.concat(BlackboardRoutes.QUESTS,
                         String.valueOf(questId)))
                 .type(HTTPVerb.GET)
                 .auth(HTTPTokenAuth.forUser(user))
                 .send();
     }
 
-    public HTTPResponse questDeliveries(@NotNull final User user,
-                                        @NotNull final Integer questId) throws IOException {
+    public HTTPResponse questDeliveries(@Nonnull final User user,
+                                        @Nonnull final Integer questId) throws IOException {
         LOG.debug("View deliveries");
         return HTTPRequest
                 .to(targetURL)
-                .resource(SubPath.from(
+                .resource(Route.concat(
                         BlackboardRoutes.QUESTS,
                         String.valueOf(questId),
                         "deliveries"))
@@ -199,14 +197,14 @@ public class APIClient {
                 .send();
     }
 
-    public HTTPResponse deliver(@NotNull final User user,
-                                @NotNull final Integer questId,
-                                @NotNull final Integer taskId,
-                                @NotNull final String tokenKey) throws IOException, TokenNotFoundException {
+    public HTTPResponse deliver(@Nonnull final User user,
+                                @Nonnull final Integer questId,
+                                @Nonnull final Integer taskId,
+                                @Nonnull final String tokenKey) throws IOException, TokenNotFoundException {
         LOG.debug("View deliveries");
         return HTTPRequest
                 .to(targetURL)
-                .resource(SubPath.from(
+                .resource(Route.concat(
                         BlackboardRoutes.QUESTS,
                         String.valueOf(questId),
                         "deliveries"))
@@ -216,12 +214,12 @@ public class APIClient {
                 .send();
     }
 
-    public HTTPResponse questTasks(@NotNull final User user,
-                                   @NotNull final Integer questId) throws IOException {
+    public HTTPResponse questTasks(@Nonnull final User user,
+                                   @Nonnull final Integer questId) throws IOException {
         LOG.debug("View task");
         return HTTPRequest
                 .to(targetURL)
-                .resource(SubPath.from(
+                .resource(Route.concat(
                         BlackboardRoutes.QUESTS,
                         String.valueOf(questId),
                         "tasks"))
@@ -231,12 +229,12 @@ public class APIClient {
     }
     // TODO map
 
-    public HTTPResponse map(@NotNull final User user,
-                            @NotNull final String location) throws IOException {
+    public HTTPResponse map(@Nonnull final User user,
+                            @Nonnull final String location) throws IOException {
         LOG.debug("View quests");
         return HTTPRequest
                 .to(targetURL)
-                .resource(SubPath.from(BlackboardRoutes.MAP, location))
+                .resource(Route.concat(BlackboardRoutes.MAP, location))
                 .type(HTTPVerb.GET)
                 .auth(HTTPTokenAuth.forUser(user))
                 .send();
@@ -247,7 +245,7 @@ public class APIClient {
         LOG.debug("Saved token " + name + "!");
     }
 
-    @NotNull
+    @Nonnull
     public Map<String, String> getTokenMap() {
         return tokenMap;
     }

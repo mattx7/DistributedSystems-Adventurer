@@ -1,7 +1,5 @@
 package vsp.adventurer_api.entities.cache;
 
-import vsp.adventurer_api.http.api.OurRoutes;
-
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +11,7 @@ import java.util.List;
 public class WebResourceEntityCache<T> {
 
     @Nonnull
-    private OurRoutes webResource;
+    private String webResource;
 
     @Nonnull
     private final List<T> objects = new ArrayList<>();
@@ -22,7 +20,7 @@ public class WebResourceEntityCache<T> {
     private final Class<T> clazz;
 
     public WebResourceEntityCache(@Nonnull final Class<T> clazz,
-                                  @Nonnull final OurRoutes webResource) {
+                                  @Nonnull final String webResource) {
         this.clazz = clazz;
         this.webResource = webResource;
     }
@@ -33,7 +31,7 @@ public class WebResourceEntityCache<T> {
 
     @Nonnull
     public String route() {
-        return webResource.getPath();
+        return webResource;
     }
 
     @Nonnull
