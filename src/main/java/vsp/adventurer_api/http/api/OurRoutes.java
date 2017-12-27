@@ -1,8 +1,5 @@
 package vsp.adventurer_api.http.api;
 
-
-import javax.annotation.Nonnull;
-
 /**
  * Our intern routes for the rest API.
  */
@@ -15,17 +12,6 @@ public class OurRoutes implements Route {
     public static final String RESULTS = "/results";
     public static final String JOIN = "/join";
     public static final String COORDINATOR = "/coordinator";
-
-
-    private String path;
-
-    OurRoutes(String path) {
-        this.path = path;
-    }
-
-    @Nonnull
-    @Override
-    public String getPath() {
-        return path;
-    }
+    public static final String MUTEX = "/mutex";
+    public static final String MUTEX_STATE = "/mutexstate";
 }

@@ -2,4 +2,4 @@
 /.gradle
 /build
 /out
-DistributedSystems.iml
+*.iml

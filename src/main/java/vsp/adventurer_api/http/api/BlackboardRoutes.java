@@ -1,8 +1,5 @@
 package vsp.adventurer_api.http.api;
 
-
-import javax.annotation.Nonnull;
-
 /**
  * Offers all possible resources from the rest api.
  */
@@ -16,15 +13,4 @@ public class BlackboardRoutes implements Route {
     public static final String GROUP = "/taverna/groups";
     public static final String VISITS = "/visits";
 
-    @Nonnull
-    private String path;
-
-    BlackboardRoutes(@Nonnull final String path) {
-        this.path = path;
-    }
-
-    @Nonnull
-    public String getPath() {
-        return path;
-    }
 }

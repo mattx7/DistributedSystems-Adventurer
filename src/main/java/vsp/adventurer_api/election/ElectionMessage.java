@@ -1,8 +1,8 @@
-package vsp.adventurer_api.entities;
+package vsp.adventurer_api.election;
 
 import vsp.adventurer_api.entities.assignment.Assignment;
 
-public class Election {
+public class ElectionMessage {
 
     /**
      * name of the algorithm used
@@ -29,7 +29,7 @@ public class Election {
      */
     private String message;
 
-    public Election(final String algorithm, final String payload, final String user, final Assignment job, final String message) {
+    public ElectionMessage(final String algorithm, final String payload, final String user, final Assignment job, final String message) {
         this.algorithm = algorithm;
         this.payload = payload;
         this.user = user;

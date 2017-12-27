@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import vsp.adventurer_api.APIClient;
 import vsp.adventurer_api.custom_exceptions.HTTPConnectionException;
 import vsp.adventurer_api.http.auth.HTTPAuthentication;
 
@@ -11,6 +12,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +26,7 @@ public class HTTPRequest {
     /**
      * Connection timeout in ms.
      */
-    private static final int CONNECTION_TIMEOUT = 2000;
+    public static int CONNECTION_TIMEOUT = 2000;
 
     /**
      * Charset for this connection.
@@ -160,9 +162,15 @@ public class HTTPRequest {
     @Nonnull
     public HTTPResponse send() throws IOException {
         Preconditions.checkState(connectionType != null, "connectionType has to be set");
-        Preconditions.checkState(webResource != null, "webResource has to be set");
+        if (webResource == null)
+            webResource = "";
 
-        final URL url = new URL(targetURL + webResource);
+        URL url;
+        try {
+            url = new URL(targetURL + webResource);
+        } catch (MalformedURLException e) {
+            url = new URL(APIClient.PROTOCOL + "://" + targetURL + webResource);
+        }
         return establishResponse(url);
     }
 

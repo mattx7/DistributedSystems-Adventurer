@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CreateAdventurer {
     private final static Logger LOG = Logger.getLogger(CreateAdventurer.class);
@@ -40,7 +41,11 @@ public class CreateAdventurer {
         Collections.addAll(oldCapabilities, StringUtils.split(getCapabilities(), ","));
         Collections.addAll(oldCapabilities, capabilities);
 
-        this.capabilities = StringUtils.join(oldCapabilities, ",");
+        final List<String> distinctCapabilities = oldCapabilities.stream()
+                .distinct()
+                .collect(Collectors.toList());
+
+        this.capabilities = StringUtils.join(distinctCapabilities, ",");
         LOG.debug("New Capabilities: " + this.capabilities);
     }
 

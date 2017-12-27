@@ -1,4 +1,4 @@
-package vsp.adventurer_api.entities.cache;
+package vsp.adventurer_api.cache;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

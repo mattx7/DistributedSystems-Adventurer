@@ -48,7 +48,8 @@ public class User {
 
         User user = (User) o;
 
-        return name.equals(user.name) && password.equals(user.password);
+        if (!name.equals(user.name)) return false;
+        return password.equals(user.password);
     }
 
     @Override
@@ -56,5 +57,14 @@ public class User {
         int result = name.hashCode();
         result = 31 * result + password.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", password='" + password + '\'' +
+                ", token=" + token +
+                '}';
     }
 }

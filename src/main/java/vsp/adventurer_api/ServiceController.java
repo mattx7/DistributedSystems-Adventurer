@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.log4j.Logger;
 import vsp.Application;
+import vsp.adventurer_api.cache.Cache;
 import vsp.adventurer_api.election.ElectionParticipant;
 import vsp.adventurer_api.entities.Message;
 import vsp.adventurer_api.entities.adventurer.AdventurerWrapper;
@@ -11,7 +12,6 @@ import vsp.adventurer_api.entities.assignment.Assignment;
 import vsp.adventurer_api.entities.assignment.TaskResult;
 import vsp.adventurer_api.entities.basic.ServiceEndpoint;
 import vsp.adventurer_api.entities.basic.User;
-import vsp.adventurer_api.entities.cache.Cache;
 import vsp.adventurer_api.entities.group.Group;
 import vsp.adventurer_api.entities.group.GroupWrapper;
 import vsp.adventurer_api.entities.group.Hiring;
@@ -19,6 +19,10 @@ import vsp.adventurer_api.http.HTTPResponse;
 import vsp.adventurer_api.http.api.BlackboardRoutes;
 import vsp.adventurer_api.http.api.OurRoutes;
 import vsp.adventurer_api.http.api.Route;
+import vsp.adventurer_api.mutex.MutexAlgorithm;
+import vsp.adventurer_api.mutex.MutexMessage;
+import vsp.adventurer_api.mutex.MutexStateMessage;
+import vsp.adventurer_api.utility.Capabilities;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -55,27 +59,28 @@ public enum ServiceController {
         // our adventurer
         get(userURI, (req, resp) -> converter.toJson(user));
 
+        // future participants only: receives a hiring
         post(Cache.HIRINGS.route(), (req, resp) -> {
             LOG.debug("reqBody: " + req.body());
             final Hiring hiring;
             try {
                 hiring = converter.fromJson(req.body(), Hiring.class);
-                final boolean isAccepted = Application.acceptToNewHiring(req.body());
+                final boolean isAccepted = Application.commandPrompt.acceptToNewHiring(req.body());
                 if (isAccepted) {
-                    Application.CLIENT.setDefaultURL(); // to blackboard in case of sending hiring to self
+                    Application.client.setDefaultURL(); // to blackboard in case of sending hiring to self
                     String groupToJoinRoute = hiring.getGroup();
 
                     final Group joinedGroup = joinGroup(user, groupToJoinRoute);
 
-                    Application.addCapabilities(user, "group", "election");
+                    Application.addCapabilities(Capabilities.GROUP, Capabilities.ELECTION);
 
                     // get election bully
                     String owner = joinedGroup.getOwner();
-                    AdventurerWrapper ownersAdventurer = Application.CLIENT
+                    AdventurerWrapper ownersAdventurer = Application.client
                             .get(user, BlackboardRoutes.ADVENTURERS + "/" + owner)
                             .getAs(AdventurerWrapper.class);
 
-                    Application.CLIENT.backToOldTarget();
+                    Application.client.backToOldTarget();
 
                     joinTopology(user, ownersAdventurer);
                     resp.status(200);
@@ -108,6 +113,7 @@ public enum ServiceController {
 
         });
 
+        // adds a result and clears the assignments
         post(OurRoutes.RESULTS, (req, resp) -> {
             final TaskResult result = converter.fromJson(req.body(), TaskResult.class);
             LOG.info("received json: \n" + result);
@@ -117,6 +123,7 @@ public enum ServiceController {
             return resp;
         });
 
+        // starts a election
         post(Cache.ELECTIONS.route(), (req, resp) -> {
             ElectionParticipant participant = converter.fromJson(req.body(), ElectionParticipant.class);
             LOG.info(">>> ELECTION REQUEST FROM: \n" + participant);
@@ -126,6 +133,7 @@ public enum ServiceController {
             return converter.toJson(new Message("OK"));
         });
 
+        // Participans only: receives a full group with every participant
         post(OurRoutes.GROUP, (req, resp) -> {
             ElectionParticipant[] participants = converter.fromJson(req.body(), ElectionParticipant[].class);
 
@@ -140,6 +148,7 @@ public enum ServiceController {
             return resp;
         });
 
+        // Coordinator only: received participant joins the topology
         post(OurRoutes.JOIN, (req, resp) -> {
             final ElectionParticipant newParticipant = converter.fromJson(req.body(), ElectionParticipant.class);
             final ElectionParticipant join = Application.election.join(newParticipant);// gives the participant a new id
@@ -151,6 +160,7 @@ public enum ServiceController {
             return converter.toJson(join);
         });
 
+        // sets a new coordinator
         post(OurRoutes.COORDINATOR, (req, resp) -> {
             String body = req.body();
             LOG.info(">>> COORDINATOR :  " + body);
@@ -159,43 +169,59 @@ public enum ServiceController {
             resp.status(200);
             return resp;
         });
+
+        // returns current mutex state with the logical time
+        get(OurRoutes.MUTEX_STATE, (req, resp) -> {
+            MutexAlgorithm mutexAlgorithm = Application.mutexAlgorithm;
+            return converter.toJson(new MutexStateMessage(
+                    mutexAlgorithm.getState().asString(),
+                    mutexAlgorithm.getClock().getAndIncrease("Sending mutex-state")));
+        });
+
+        // Endpoint where one posts mutex algorithm messages
+        post(OurRoutes.MUTEX, (req, resp) -> {
+            MutexMessage mutexRequest = converter.fromJson(req.body(), MutexMessage.class);
+            Application.mutexAlgorithm.receive(mutexRequest);
+            resp.status(200);
+            return resp;
+        });
     }
 
 
-    // ==========================================================
+    public ServiceEndpoint getEndpoint() {
+        return endpoint;
+    }
+
+    // =================== Helper Methods ============================
 
     /**
      * Joining the topology by the url of the adventurer.
      */
     private void joinTopology(User user, AdventurerWrapper ownersAdventurer) throws IOException {
         String ownersAddress = ownersAdventurer.getObject().getUrl().split(":")[0];
-        Application.CLIENT.setTargetURL(ownersAddress, 4567);
+        Application.client.setTargetURL(ownersAddress, 4567);
         LOG.info("Looking for owner " + ownersAddress);
         // join - returns yourself with given id
-        ElectionParticipant yourself = Application.CLIENT.post(user, OurRoutes.JOIN,
-                converter.toJson(new ElectionParticipant(Application.OWN_IP, Application.OWN_PORT)))
+        ElectionParticipant yourself = Application.client.post(user, OurRoutes.JOIN,
+                converter.toJson(new ElectionParticipant(Application.ownIp, Application.OWN_PORT)))
                 .getAs(ElectionParticipant.class);
         // Application.election.add(yourself); already added because join sends a "broadcast" with participants
         Application.election.setYourself(yourself);
 
-        Application.CLIENT.backToOldTarget();
+        Application.client.backToOldTarget();
     }
 
     @Nonnull
     private Group joinGroup(User user, String groupToJoinRoute) throws IOException {
-        final HTTPResponse response = Application.CLIENT.post(user, groupToJoinRoute + "/members", "");
-        getEndpoint().setGroup(Application.CLIENT.getDefaultURL().split("//")[1] + groupToJoinRoute);
+        final HTTPResponse response = Application.client.post(user, groupToJoinRoute + "/members", "");
+        getEndpoint().setGroup(Application.client.getDefaultURL().split("//")[1] + groupToJoinRoute);
         LOG.info("received json: \n" + response.getJson());
 
         // add group
-        GroupWrapper groupWrapper = Application.CLIENT.get(user, groupToJoinRoute).getAs(GroupWrapper.class);
+        GroupWrapper groupWrapper = Application.client.get(user, groupToJoinRoute).getAs(GroupWrapper.class);
         Cache.GROUPS.getObjects().clear();
         Cache.GROUPS.add(groupWrapper.getObject());
         return groupWrapper.getObject();
-    }
-
-    public ServiceEndpoint getEndpoint() {
-        return endpoint;
     }
 
     private void informEveryoneAboutTheNewParticipant(User user) throws IOException {
@@ -205,16 +231,16 @@ public enum ServiceController {
         String participantsJSON = converter.toJson(participantsArray);
 
         for (ElectionParticipant next : participants) {
-            Application.CLIENT.setTargetURL(next.getIp(), next.getPort());
+            Application.client.setTargetURL(next.getIp(), next.getPort());
 
             LOG.info("Sending all participants to " + next.getURL() + ":" + next.getPort());
             LOG.info("JSON:\n" + participantsJSON);
 
-            Application.CLIENT.post(user,
+            Application.client.post(user,
                     OurRoutes.GROUP,
                     participantsJSON);
 
-            Application.CLIENT.setDefaultURL();
+            Application.client.setDefaultURL();
         }
     }
 

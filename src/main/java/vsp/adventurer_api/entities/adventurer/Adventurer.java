@@ -1,5 +1,10 @@
 package vsp.adventurer_api.entities.adventurer;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class Adventurer {
 
     private String capabilities;
@@ -47,6 +52,17 @@ public class Adventurer {
 
     public void setUser(String user) {
         this.user = user;
+    }
+
+    public boolean hasCapability(String requestedCapability) {
+        final String[] split = StringUtils.split(getCapabilities(), ",");
+
+        return split != null &&
+                Arrays.stream(split)
+                        .map(StringUtils::deleteWhitespace)
+                        .collect(Collectors.toList())
+                        .contains(requestedCapability);
+
     }
 
     @Override

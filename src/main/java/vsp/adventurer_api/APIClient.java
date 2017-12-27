@@ -28,7 +28,7 @@ public class APIClient {
     private static Logger LOG = Logger.getLogger(Application.class);
 
     @Nonnull
-    private static final String PROTOCOL = "http";
+    public static final String PROTOCOL = "http";
 
     private String temp;
 
@@ -82,6 +82,13 @@ public class APIClient {
                 .send();
     }
 
+    public HTTPResponse get(@Nonnull final String url) throws IOException {
+        return HTTPRequest
+                .to(url)
+                .type(HTTPVerb.GET)
+                .send();
+    }
+
     public HTTPResponse post(@Nonnull final User user,
                              @Nonnull final String path,
                              @Nonnull final String body) throws IOException {
@@ -106,6 +113,20 @@ public class APIClient {
                 .auth(HTTPTokenAuth.forUser(user))
                 .body(body)
                 .send();
+    }
+
+    public boolean onlineCheck(String url) {
+
+        try {
+            get(url);
+        } catch (IOException e) {
+            LOG.info(url + "\t\t\t> offline");
+            LOG.debug("ERROR: ", e);
+            return false;
+        }
+
+        LOG.info(url + "\t\t\t> online");
+        return true;
     }
 
     //  =====================================

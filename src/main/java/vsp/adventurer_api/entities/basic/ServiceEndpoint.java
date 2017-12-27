@@ -39,15 +39,15 @@ public class ServiceEndpoint {
      */
     private String election;
 
-    public ServiceEndpoint(String user, boolean idle, String group, String hirings, String assignments, String messages, String election) {
-        this.user = user;
-        this.idle = idle;
-        this.group = group;
-        this.hirings = hirings;
-        this.assignments = assignments;
-        this.messages = messages;
-        this.election = election;
-    }
+    /**
+     * uri to endpoint where one posts mutex algorithm messages
+     */
+    private String mutex;
+
+    /**
+     * uri to endpoint telling the mutex state
+     */
+    private String mutexstate;
 
     public ServiceEndpoint(String user, boolean idle) {
         this.user = user;
@@ -57,6 +57,8 @@ public class ServiceEndpoint {
         this.assignments = OurRoutes.ASSIGNMENTS;
         this.messages = OurRoutes.MESSAGES;
         this.election = OurRoutes.ELECTION;
+        this.mutex = OurRoutes.MUTEX;
+        this.mutexstate = OurRoutes.MUTEX_STATE;
     }
 
     public String getUser() {
@@ -97,5 +99,21 @@ public class ServiceEndpoint {
 
     public String getElection() {
         return election;
+    }
+
+    public String getMutex() {
+        return mutex;
+    }
+
+    public void setMutex(String mutex) {
+        this.mutex = mutex;
+    }
+
+    public String getMutexstate() {
+        return mutexstate;
+    }
+
+    public void setMutexstate(String mutexstate) {
+        this.mutexstate = mutexstate;
     }
 }
