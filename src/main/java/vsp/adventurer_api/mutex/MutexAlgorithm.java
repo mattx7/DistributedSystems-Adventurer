@@ -76,7 +76,7 @@ public class MutexAlgorithm {
             sendOK(Application.adventurer.getUrl() + OurRoutes.MUTEX);
             return;
         }
-        if (request.getMsg().equalsIgnoreCase("ok")) {
+        if (request.getMsg().toLowerCase().contains("ok")) {
             LOG.info(">>> received ok-message");
             handleConfirmation(request);
             return;
@@ -142,7 +142,7 @@ public class MutexAlgorithm {
         state = MutexStates.WANTING;
 
         final int requestTime = clock.getAndIncrease("Sending mutex requests");
-        myRequest = new MutexMessage("Request for ???", requestTime);
+        myRequest = new MutexMessage("request", requestTime);
         unconfirmedAnswers = new ArrayList<>(adventurers);
 
         new ArrayList<>(adventurers).forEach(e -> {
