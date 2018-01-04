@@ -220,8 +220,10 @@ public class MutexAlgorithm {
         void doStuff() {
             while (held) {
                 try {
-                    LOG.info("!!! In Critical zone !!!");
-                    Thread.sleep(10000);
+                    for (int i = 0; i < 10; i++) {
+                        LOG.info("!!! In Critical zone !!!");
+                        Thread.sleep(1000);
+                    }
                     held = false; // TODO remove HACK; does avoid multiple threads
                 } catch (InterruptedException e) {
                     LOG.error("Interrupted waiting", e);
