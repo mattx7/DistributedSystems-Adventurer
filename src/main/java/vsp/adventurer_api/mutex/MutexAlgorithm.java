@@ -1,9 +1,11 @@
 package vsp.adventurer_api.mutex;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import vsp.Application;
 import vsp.adventurer_api.entities.adventurer.Adventurer;
+import vsp.adventurer_api.entities.basic.User;
 import vsp.adventurer_api.http.api.OurRoutes;
 import vsp.adventurer_api.utility.Capabilities;
 import vsp.adventurer_api.utility.LamportClock;
@@ -76,7 +78,7 @@ public class MutexAlgorithm {
             sendOK(Application.adventurer.getUrl() + OurRoutes.MUTEX);
             return;
         }
-        if (request.getMsg().toLowerCase().contains("ok")) {
+        if (StringUtils.containsIgnoreCase(request.getMsg(), "ok")) {
             LOG.info(">>> received ok-message");
             handleConfirmation(request);
             return;
@@ -89,27 +91,46 @@ public class MutexAlgorithm {
             case WANTING:
                 Preconditions.checkNotNull(myRequest, "myRequest must not be null.");
 
-                final boolean isOlderThanMyRequest = request.getTime() < myRequest.getTime();
-                //                final boolean areTimesEquals = request.getTime() == myRequest.getTime();
+                final boolean isOlderThanMyRequest = request.getTime() <= myRequest.getTime();
+                final boolean areTimesEquals = request.getTime() == myRequest.getTime();
 
                 if (isOlderThanMyRequest) {
                     sendOK(request.getReply());
                     break;
                 }
-                //                else if (areTimesEquals) {
-                //                    final boolean isClientIdFromRequestSmaller = true; // TODO compare clientIDs
-                //                    if (isClientIdFromRequestSmaller) {
-                //                        sendOK(request.getReply());
-                //                        break;
-                //                    }
-                //                }
-                // else do same as HELD
+//                else if (areTimesEquals) {
+//                    try {
+//                        if (isClientIdFromRequestSmaller(request)) {
+//                            sendOK(request.getReply());
+//                            break;
+//                        }
+//                    } catch (IOException e) {
+//                        LOG.error("", e);
+//                    }
+//                }
             case HELD:
                 queue.add(request);
                 break;
             default:
                 throw new IllegalArgumentException("Case not implemented!");
         }
+    }
+
+    private boolean isClientIdFromRequestSmaller(final @Nonnull MutexMessage request) throws IOException {
+        final char[] our = Application.user.getName().toCharArray();
+        Application.client.setDefaultURL();
+        final User user = Application.client.get(Application.user, request.getUser()).getAs(User.class);
+        Application.client.backToOldTarget();
+        final char[] enemy = user.getName().toCharArray();
+
+        boolean isClientIdFromRequestSmaller = true;
+        for (int i = 0; i < our.length; i++) {
+            if (our[i] == enemy[i]) {
+                continue;
+            }
+            isClientIdFromRequestSmaller = our[i] > enemy[i];
+        }
+        return isClientIdFromRequestSmaller;
     }
 
     private void handleConfirmation(final @Nonnull MutexMessage request) {
